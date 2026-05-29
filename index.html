@@ -1,60 +1,1791 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE MINING BLOG265</title>
+    <title>mining blog265</title>
+    <!-- Tailwind CSS for modern responsive layout utilities -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons for premium crisp iconography -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --accent: #2997ff; /* Dynamic accent color updated by script */
+            --accent-glow: rgba(41, 151, 255, 0.35);
+        }
+
+        :root[data-theme="light"] {
+            --ios-bg: radial-gradient(circle at top left, #f3f4f6, #e5e7eb, #d1d5db);
+            --glass-bg: rgba(255, 255, 255, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.06), inset 0 1px 0 rgba(255,255,255,0.4);
+            --text-main: #1d1d1f;
+            --text-muted: #6e6e73;
+            --bubble-user: var(--accent);
+            --bubble-user-text: #ffffff;
+            --bubble-other: rgba(255, 255, 255, 0.65);
+        }
+
+        :root[data-theme="dark"] {
+            --ios-bg: radial-gradient(circle at top right, #0a0a0c, #121318, #1c1d24);
+            --glass-bg: rgba(25, 25, 30, 0.55);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255,255,255,0.05);
+            --text-main: #f5f5f7;
+            --text-muted: #86868b;
+            --bubble-user: var(--accent);
+            --bubble-user-text: #ffffff;
+            --bubble-other: rgba(255, 255, 255, 0.09);
+        }
+
+        body {
+            background: var(--ios-bg);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+            transition: background 0.5s ease;
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px) saturate(190%);
+            -webkit-backdrop-filter: blur(25px) saturate(190%);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        /* Custom scrollbars with iOS aesthetic */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(120, 120, 120, 0.3);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(120, 120, 120, 0.5);
+        }
+
+        /* Curved iOS 26 Message Bubbles */
+        .bubble-in {
+            background: var(--bubble-other);
+            color: var(--text-main);
+            border-radius: 20px 20px 20px 4px;
+        }
+        .bubble-out {
+            background: var(--bubble-user);
+            color: var(--bubble-user-text);
+            border-radius: 20px 20px 4px 20px;
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+
+        .dynamic-text-accent {
+            color: var(--accent) !important;
+        }
+        .dynamic-bg-accent {
+            background-color: var(--accent) !important;
+        }
+        .dynamic-border-accent {
+            border-color: var(--accent) !important;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slideup {
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .heart-pop {
+            animation: heartBeat 0.3s ease-in-out;
+        }
+        @keyframes heartBeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.25); color: #ff3b30; }
+            100% { transform: scale(1); }
+        }
+    </style>
 </head>
-<body class="bg-gray-100 text-gray-900">
+<body class="min-h-screen pb-10">
 
-    <div id="app" class="max-w-2xl mx-auto p-4">
-        <header class="text-center py-10">
-            <h1 class="text-4xl font-black text-black">THE MINING BLOG265</h1>
-            <p class="text-gray-500 mt-2">Geologic Field Updates</p>
-        </header>
-
-        <div id="feed" class="space-y-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm">
-                <h3 class="font-bold">Welcome, Explorer</h3>
-                <p class="text-gray-600 mt-2">Site is live and ready for data.</p>
+    <!-- REAL-TIME NOTIFICATION BANNER -->
+    <div id="pushNotification" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4 pointer-events-none transform -translate-y-24 transition-transform duration-500 ease-out">
+        <div class="glass-panel p-4 rounded-2xl flex items-start gap-3 shadow-2xl pointer-events-auto">
+            <div class="dynamic-bg-accent p-2 rounded-xl text-white" id="toastBadge">
+                <i data-lucide="bell" class="w-5 h-5"></i>
+            </div>
+            <div class="flex-1">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold tracking-wide uppercase dynamic-text-accent" id="toastSub">Live Update</span>
+                    <span class="text-[10px] text-gray-400">Just now</span>
+                </div>
+                <h4 class="font-bold text-sm text-main" id="notifyTitle">New Broadcast!</h4>
+                <p class="text-xs text-muted mt-1 line-clamp-2" id="notifyDesc">The admin geologist has updated the system feed.</p>
             </div>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    <!-- FIRST-TIME TOUR INTERACTIVE ONBOARDING MODAL -->
+    <div id="tourModal" class="fixed inset-0 bg-black/75 backdrop-blur-lg z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel w-full max-w-lg p-8 rounded-3xl animate-slideup space-y-6 text-left relative">
+            <button onclick="closeTour()" class="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full transition text-gray-400 hover:text-white">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            
+            <div class="flex items-center gap-3 border-b border-white/5 pb-4">
+                <div class="p-2.5 bg-yellow-500/10 text-yellow-500 rounded-xl">
+                    <i data-lucide="compass" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-black tracking-tight" id="tourHeading">Geologist Guided Tour</h3>
+                    <p class="text-[10px] uppercase text-gray-400 font-bold" id="tourProgress">Step 1 of 5</p>
+                </div>
+            </div>
 
-        // CONFIGURATION: Replace with your actual Firebase config object
+            <div class="space-y-3">
+                <p class="text-sm leading-relaxed text-gray-300" id="tourDescription">
+                    Welcome to the specialized geological portal. Let's make sure you can find your way around easily.
+                </p>
+            </div>
+
+            <div class="flex justify-between items-center pt-4 border-t border-white/5">
+                <button onclick="prevTourStep()" id="tourPrevBtn" class="px-4 py-2 rounded-xl text-xs font-bold bg-white/5 hover:bg-white/10 transition text-gray-400 hover:text-white disabled:opacity-30" disabled>
+                    Previous
+                </button>
+                <button onclick="nextTourStep()" id="tourNextBtn" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white dynamic-bg-accent hover:opacity-90 active:scale-95 transition">
+                    Next Step
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EMAIL LOGIN MODAL -->
+    <div id="loginModal" class="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md p-8 rounded-3xl animate-slideup text-center">
+            <div class="inline-flex p-4 bg-gradient-to-tr from-yellow-500 to-amber-600 rounded-2xl shadow-lg mb-4 text-white">
+                <i data-lucide="shovel" class="w-10 h-10"></i>
+            </div>
+            <h2 class="text-2xl font-black tracking-tight mb-2">Welcome to mining blog265</h2>
+            <p class="text-sm text-gray-400 mb-6" id="loginSubText">Enter your credentials to connect with geologists worldwide.</p>
+            
+            <form id="authForm" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider mb-2 text-gray-400">Email Address</label>
+                    <input type="email" id="loginEmail" required class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-colors" placeholder="miner@geology265.com">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider mb-2 text-gray-400">Password</label>
+                    <input type="password" id="loginPassword" required class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-colors" placeholder="••••••••">
+                </div>
+                <button type="submit" class="w-full dynamic-bg-accent hover:opacity-90 active:scale-95 text-white font-bold py-3.5 rounded-xl transition shadow-lg mt-2 flex justify-center items-center gap-2">
+                    <span id="authBtnSpinner" class="hidden animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
+                    <span id="authBtnText">Enter Dashboard</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div class="flex min-h-screen">
+        
+        <!-- SIDEBAR NAVIGATION (iOS styling) -->
+        <aside class="w-64 fixed inset-y-0 left-0 glass-panel border-r hidden md:flex flex-col justify-between p-6 z-30 m-4 rounded-3xl h-[calc(100vh-2rem)]">
+            <div class="space-y-6">
+                <!-- Branding -->
+                <div class="flex items-center gap-3">
+                    <img id="sidebarLogo" src="https://images.unsplash.com/photo-1515549833447-24af30343885?w=150" alt="App Logo" class="w-11 h-11 rounded-xl object-cover ring-2 ring-white/10 shadow-lg">
+                    <div>
+                        <h1 class="font-black text-sm tracking-tight leading-none" id="sidebarBrandName">mining blog265</h1>
+                        <span class="text-[10px] text-yellow-500 font-bold uppercase tracking-wider" id="sidebarSubName">Geological Hub</span>
+                    </div>
+                </div>
+
+                <!-- Dynamic Language Selector dropdown -->
+                <div class="space-y-1.5 p-1 bg-black/20 rounded-xl border border-white/5">
+                    <label class="block text-[9px] font-bold uppercase tracking-wider text-gray-400 px-2" id="lblPrefLang">Preferred Language</label>
+                    <select id="langSelector" onchange="setSystemLanguage(this.value)" class="w-full bg-transparent border-0 text-xs font-bold focus:outline-none cursor-pointer p-1.5 text-main">
+                        <option value="en" selected class="bg-stone-900">English (Default)</option>
+                        <option value="ny" class="bg-stone-900">Chichewa</option>
+                        <option value="tum" class="bg-stone-900">Tumbuka</option>
+                        <option value="yao" class="bg-stone-900">Yao</option>
+                        <option value="zu" class="bg-stone-900">Zulu</option>
+                        <option value="bem" class="bg-stone-900">Bemba</option>
+                    </select>
+                </div>
+
+                <!-- Nav Menu Items -->
+                <nav class="space-y-1">
+                    <button onclick="switchTab('feed')" id="nav-feed" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-300 active:scale-[0.98] bg-white/10 dynamic-text-accent">
+                        <i data-lucide="layout-grid" class="w-5 h-5"></i> <span id="lblNavFeed">Home Feed</span>
+                    </button>
+                    <button onclick="switchTab('minerals')" id="nav-minerals" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-300 active:scale-[0.98] text-gray-400 hover:bg-white/5 hover:text-white">
+                        <i data-lucide="gem" class="w-5 h-5"></i> <span id="lblNavMinerals">Local Minerals</span>
+                    </button>
+                    <button onclick="switchTab('toolkit')" id="nav-toolkit" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-300 active:scale-[0.98] text-gray-400 hover:bg-white/5 hover:text-white">
+                        <i data-lucide="calculator" class="w-5 h-5"></i> <span id="lblNavToolkit">Geologist Toolkit</span>
+                    </button>
+                    <button onclick="switchTab('chats')" id="nav-chats" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-300 active:scale-[0.98] text-gray-400 hover:bg-white/5 hover:text-white">
+                        <i data-lucide="message-square" class="w-5 h-5"></i> <span id="lblNavChats">Chats Hub</span>
+                    </button>
+                    <button onclick="switchTab('profile')" id="nav-profile" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-300 active:scale-[0.98] text-gray-400 hover:bg-white/5 hover:text-white">
+                        <i data-lucide="user" class="w-5 h-5"></i> <span id="lblNavProfile">My Profile</span>
+                    </button>
+                    <button onclick="switchTab('admin')" id="nav-admin" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-300 active:scale-[0.98] text-gray-400 hover:bg-white/5 hover:text-white">
+                        <i data-lucide="shield" class="w-5 h-5"></i> <span id="lblNavAdmin">Admin Board</span>
+                    </button>
+                    <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-300 active:scale-[0.98] text-gray-400 hover:bg-white/5 hover:text-white">
+                        <i data-lucide="settings" class="w-5 h-5"></i> <span id="lblNavSettings">Contact & Settings</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Footer Meta & Quick Mode Toggler -->
+            <div class="space-y-3">
+                <!-- Trigger Interactive Tour Button -->
+                <button onclick="triggerInteractiveTour()" class="w-full flex items-center justify-center gap-2 py-2 px-3 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 rounded-xl text-xs font-bold transition">
+                    <i data-lucide="compass" class="w-4 h-4"></i> <span id="lblBtnTour">Start Guided Tour</span>
+                </button>
+
+                <div class="glass-panel p-3 rounded-2xl">
+                    <div class="flex items-center justify-between text-xs mb-1">
+                        <span class="text-gray-400 font-semibold" id="lblActiveUser">Active User</span>
+                        <span class="inline-block w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <img id="activeUserAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100" class="w-8 h-8 rounded-full object-cover">
+                        <span class="text-xs font-bold truncate" id="activeUserName">Sarah Jenkins</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-1.5 p-1 bg-black/20 rounded-xl">
+                    <button onclick="setTheme('light')" class="theme-btn flex-1 py-1.5 rounded-lg flex justify-center text-gray-400 hover:text-white" title="Light Theme"><i data-lucide="sun" class="w-4 h-4"></i></button>
+                    <button onclick="setTheme('dark')" class="theme-btn flex-1 py-1.5 rounded-lg flex justify-center dynamic-text-accent bg-white/10" id="dark-theme-btn" title="Dark Theme"><i data-lucide="moon" class="w-4 h-4"></i></button>
+                    <button onclick="setTheme('system')" class="theme-btn flex-1 py-1.5 rounded-lg flex justify-center text-gray-400 hover:text-white" title="System Theme"><i data-lucide="monitor" class="w-4 h-4"></i></button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN MAIN CONTAINER -->
+        <div class="flex-1 md:ml-72 p-4 md:p-8 space-y-6">
+            
+            <!-- HEADER BAR FOR MOBILE -->
+            <header class="glass-panel flex items-center justify-between px-6 py-4 rounded-3xl md:hidden">
+                <div class="flex items-center gap-3">
+                    <img id="mobileLogo" src="https://images.unsplash.com/photo-1515549833447-24af30343885?w=150" alt="App Logo" class="w-8 h-8 rounded-lg object-cover">
+                    <h1 class="font-extrabold text-sm" id="mobileBrandName">mining blog265</h1>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="switchTab('feed')" class="p-2 bg-white/5 hover:bg-white/10 rounded-xl"><i data-lucide="layout-grid" class="w-4 h-4"></i></button>
+                    <button onclick="switchTab('toolkit')" class="p-2 bg-white/5 hover:bg-white/10 rounded-xl"><i data-lucide="calculator" class="w-4 h-4"></i></button>
+                    <button onclick="switchTab('chats')" class="p-2 bg-white/5 hover:bg-white/10 rounded-xl relative">
+                        <i data-lucide="message-square" class="w-4 h-4"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 dynamic-bg-accent rounded-full"></span>
+                    </button>
+                    <button onclick="switchTab('admin')" class="p-2 bg-white/5 hover:bg-white/10 rounded-xl"><i data-lucide="shield" class="w-4 h-4"></i></button>
+                </div>
+            </header>
+
+            <!-- ================= HOME FEED TAB ================= -->
+            <section id="tab-feed" class="tab-content space-y-6 animate-slideup">
+                <div>
+                    <h2 class="text-3xl font-black tracking-tight" id="titleGeologyFeed">Geology Feed</h2>
+                    <p class="text-sm text-gray-400" id="subGeologyFeed">Discover recent stories, field research, and global excavation news.</p>
+                </div>
+
+                <!-- Feed Output Grid / List (Twitter-Style layout) -->
+                <div id="postsList" class="space-y-6 max-w-2xl">
+                    <!-- Dynamic Posts render here -->
+                    <div id="noPostsMessage" class="text-center py-10 text-gray-400 text-sm hidden">
+                        No geological stories have been posted yet. Run the Admin Board to create updates.
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= LOCAL MINERALS TAB ================= -->
+            <section id="tab-minerals" class="tab-content space-y-6 hidden animate-slideup">
+                <div>
+                    <h2 class="text-3xl font-black tracking-tight" id="titleMineralsCatalog">Local Minerals Catalog</h2>
+                    <p class="text-sm text-gray-400" id="subMineralsCatalog">Discover precious metals, gemstones, and unique raw ores excavated locally.</p>
+                </div>
+
+                <!-- Grid layout of Minerals -->
+                <div id="mineralsList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Dynamic Mineral Cards render here -->
+                </div>
+                <div id="noMineralsMessage" class="text-center py-10 text-gray-400 text-sm hidden">
+                    No registered minerals. Add one using the Admin Board.
+                </div>
+            </section>
+
+            <!-- ================= GEOLOGIST TOOLKIT TAB ================= -->
+            <section id="tab-toolkit" class="tab-content hidden animate-slideup space-y-8">
+                <div>
+                    <h2 class="text-3xl font-black tracking-tight" id="titleGeologistToolkit">Geologist Toolkit</h2>
+                    <p class="text-sm text-gray-400" id="subGeologistToolkit">Advanced structural calculators and reference standards for mineral analysis.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    <!-- Mohs Scale Interactive Tool -->
+                    <div class="glass-panel p-6 rounded-3xl space-y-4">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="sparkles" class="dynamic-text-accent"></i>
+                            <h3 class="font-bold text-lg text-main" id="titleMohsHelper">Mohs Hardness Helper</h3>
+                        </div>
+                        <p class="text-xs text-gray-400" id="subMohsHelper">Search or filter mineral properties to verify identification based on scratching resistance.</p>
+                        
+                        <div class="space-y-3">
+                            <input type="text" id="mohsSearch" oninput="filterMohsScale()" placeholder="Search mineral (e.g. Talc, Quartz)..." class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-blue-500">
+                            
+                            <div id="mohsResults" class="max-h-56 overflow-y-auto space-y-2 pr-1">
+                                <!-- Loaded Dynamically by script -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Strike and Dip Structural Calculator -->
+                    <div class="glass-panel p-6 rounded-3xl space-y-4">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="compass" class="dynamic-text-accent"></i>
+                            <h3 class="font-bold text-lg text-main" id="titleStrikeDip">Strike & Dip Estimator</h3>
+                        </div>
+                        <p class="text-xs text-gray-400" id="subStrikeDip">Calculate bedding plane alignments and true thickness measurements from field strikes.</p>
+                        
+                        <div class="space-y-3 text-sm">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] uppercase text-gray-400 font-bold mb-1" id="lblMeasuredDip">Measured Dip (deg)</label>
+                                    <input type="number" id="calcDip" value="30" class="w-full bg-black/20 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] uppercase text-gray-400 font-bold mb-1" id="lblStrikeDirection">Strike Direction (deg)</label>
+                                    <input type="number" id="calcStrike" value="120" class="w-full bg-black/20 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] uppercase text-gray-400 font-bold mb-1" id="lblOutcropWidth">Measured Outcrop Width (meters)</label>
+                                <input type="number" id="calcWidth" value="15" class="w-full bg-black/20 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none">
+                            </div>
+
+                            <button onclick="calculateStructure()" class="w-full py-2.5 rounded-xl text-xs font-bold text-white dynamic-bg-accent hover:opacity-90 transition" id="btnCalculate">
+                                Calculate Thickness
+                            </button>
+
+                            <div class="p-3 bg-black/25 rounded-xl text-xs space-y-1">
+                                <div><strong id="lblEstThickness">Estimated Bedding Thickness:</strong> <span id="outThickness">7.50</span> meters</div>
+                                <div><strong id="lblAppDipDir">Apparent Dip Direction (RHR):</strong> <span id="outDipDir">210</span>°</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ================= CHATS HUB TAB ================= -->
+            <section id="tab-chats" class="tab-content hidden animate-slideup">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-12rem)] min-h-[500px]">
+                    
+                    <!-- Contacts Panel (iOS-style directory list) -->
+                    <div class="lg:col-span-1 glass-panel rounded-3xl p-4 flex flex-col space-y-4 h-full overflow-hidden">
+                        <div class="flex items-center justify-between border-b border-white/5 pb-3">
+                            <h3 class="font-black text-lg" id="titleActiveDirectory">Active Directory</h3>
+                            <span class="text-xs font-semibold px-2 py-0.5 dynamic-bg-accent text-white rounded-full" id="chatCountBadge">0 Active</span>
+                        </div>
+                        <div class="flex-1 overflow-y-auto space-y-2 pr-1" id="chatContactsList">
+                            <!-- Populated dynamically when users create profiles -->
+                        </div>
+                    </div>
+
+                    <!-- Conversation/Message Window (iOS 26 layout) -->
+                    <div class="lg:col-span-2 glass-panel rounded-3xl flex flex-col h-full overflow-hidden">
+                        <!-- Top Active Participant Info -->
+                        <div id="activeChatHeader" class="flex items-center gap-3 px-6 py-4 border-b border-white/5 bg-black/10 hidden">
+                            <img id="chatHeaderImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100" class="w-10 h-10 rounded-full object-cover">
+                            <div>
+                                <h4 id="chatHeaderName" class="font-bold text-sm">Select Profile</h4>
+                                <span class="text-[10px] text-green-500 font-bold flex items-center gap-1">
+                                    <span class="inline-block w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Online
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Messages Output Box -->
+                        <div id="chatMessages" class="flex-1 overflow-y-auto p-6 space-y-4 flex flex-col">
+                            <div class="my-auto text-center text-gray-400 text-sm">
+                                <i data-lucide="message-square" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                                <span id="lblSelectProfileMessage">Select a verified mining user from the Directory list to start a secure discussion thread.</span>
+                            </div>
+                        </div>
+
+                        <!-- Control & Input Bar (iOS style glass bar) -->
+                        <div id="chatInputBar" class="p-4 border-t border-white/5 bg-black/10 flex items-center gap-3 hidden">
+                            <!-- Attach Media Trigger -->
+                            <label for="chatAttachMedia" class="p-2 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-xl cursor-pointer transition active:scale-95">
+                                <i data-lucide="image" class="w-5 h-5"></i>
+                            </label>
+                            <input type="file" id="chatAttachMedia" accept="image/*,video/*" class="hidden">
+
+                            <!-- Text Input -->
+                            <input type="text" id="chatMessageInput" placeholder="Type secure dispatch message..." class="flex-1 bg-black/25 border border-white/10 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition">
+
+                            <!-- Submit button -->
+                            <button id="sendChatBtn" class="p-3 dynamic-bg-accent hover:opacity-90 text-white rounded-2xl transition active:scale-95 shadow-md">
+                                <i data-lucide="send" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= MY PROFILE TAB ================= -->
+            <section id="tab-profile" class="tab-content hidden animate-slideup max-w-xl">
+                <div>
+                    <h2 class="text-3xl font-black tracking-tight" id="titleGeologistProfile">Geologist Profile</h2>
+                    <p class="text-sm text-gray-400" id="subGeologistProfile">Configure your geological identification card, details and profile avatar.</p>
+                </div>
+
+                <div class="glass-panel p-8 rounded-3xl space-y-6">
+                    <div class="flex flex-col sm:flex-row items-center gap-6">
+                        <!-- Profile Image Selector -->
+                        <div class="relative group">
+                            <img id="profileCardImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" class="w-28 h-28 rounded-3xl object-cover ring-4 ring-blue-500/20 shadow-2xl">
+                            <label for="profileImageFile" class="absolute inset-0 bg-black/40 rounded-3xl opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition text-white">
+                                <i data-lucide="camera" class="w-6 h-6"></i>
+                            </label>
+                            <input type="file" id="profileImageFile" accept="image/*" class="hidden">
+                        </div>
+                        <!-- General Info -->
+                        <div class="flex-1 space-y-2 text-center sm:text-left">
+                            <span class="bg-blue-500/20 dynamic-text-accent text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Field Operative</span>
+                            <h3 id="profileCardName" class="text-2xl font-extrabold text-main">Sarah Jenkins</h3>
+                            <p class="text-xs text-gray-400 flex items-center justify-center sm:justify-start gap-1">
+                                <i data-lucide="mail" class="w-3.5 h-3.5"></i> <span id="profileCardEmail">sarah@mining265.com</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr class="border-white/5">
+
+                    <!-- Edit Form -->
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs uppercase tracking-wider text-gray-400 font-bold mb-2">Display Name</label>
+                                <input type="text" id="editProfileName" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs uppercase tracking-wider text-gray-400 font-bold mb-2">Primary Specialization</label>
+                                <input type="text" id="editProfileSpec" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-gray-400 font-bold mb-2">Professional Biography</label>
+                            <textarea id="editProfileBio" rows="3" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500"></textarea>
+                        </div>
+                        
+                        <!-- Profile update submit -->
+                        <button id="saveProfileBtn" class="w-full dynamic-bg-accent hover:opacity-90 text-white font-extrabold py-3.5 rounded-xl transition shadow-lg active:scale-95" id="btnUpdateProfile">
+                            Synchronize & Update Profile
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= ADMIN PANEL TAB ================= -->
+            <section id="tab-admin" class="tab-content hidden animate-slideup space-y-8">
+                <div>
+                    <h2 class="text-3xl font-black tracking-tight text-yellow-500" id="titleCommandCenter">Geologist Command Center</h2>
+                    <p class="text-sm text-gray-400" id="subCommandCenter">Exclusive administration board for managing feeds, site logo assets, and logging local minerals.</p>
+                </div>
+
+                <!-- ADMIN AUTHORIZATION GATE (Shown if key not correct) -->
+                <div id="adminGate" class="glass-panel p-8 rounded-3xl max-w-md mx-auto space-y-4 text-center">
+                    <div class="inline-flex p-3 bg-red-500/10 text-red-400 rounded-2xl mb-2">
+                        <i data-lucide="lock" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-main" id="titleAdminAccess">Admin Access Required</h3>
+                    <p class="text-xs text-gray-400" id="subAdminAccess">Please provide the geological commander authentication key to unlock managing tools.</p>
+                    
+                    <div class="space-y-3">
+                        <input type="password" id="adminPassKey" placeholder="Enter Administrative Key..." class="w-full bg-black/25 border border-white/10 rounded-xl px-4 py-3 text-sm text-center focus:outline-none focus:border-yellow-500">
+                        <button id="verifyAdminBtn" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-extrabold py-3 rounded-xl transition active:scale-95" id="btnAuthorizeDeck">
+                            Authorize Control Deck
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ADMIN MAIN WORKSPACE (Hidden by default until key success) -->
+                <div id="adminWorkspace" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        
+                        <!-- Left Panel: Brand branding & Theme Customization -->
+                        <div class="space-y-6">
+                            
+                            <!-- Custom Theme Color Customizer -->
+                            <div class="glass-panel p-6 rounded-3xl space-y-4">
+                                <div class="flex items-center gap-2 text-main">
+                                    <i data-lucide="palette" class="w-5 h-5 text-yellow-500"></i>
+                                    <h3 class="font-extrabold text-lg">System Color Customizer</h3>
+                                </div>
+                                <p class="text-xs text-gray-400">Select a primary signature accent color scheme for your geological network.</p>
+                                
+                                <div class="grid grid-cols-4 gap-2">
+                                    <button onclick="window.changeAccentColor('#0071e3', 'rgba(0,113,227,0.35)')" class="p-2.5 rounded-xl border border-white/5 bg-[#0071e3] text-white text-xs font-bold active:scale-95">Blue</button>
+                                    <button onclick="window.changeAccentColor('#10b981', 'rgba(16,185,129,0.35)')" class="p-2.5 rounded-xl border border-white/5 bg-[#10b981] text-white text-xs font-bold active:scale-95">Emerald</button>
+                                    <button onclick="window.changeAccentColor('#f59e0b', 'rgba(245,158,11,0.35)')" class="p-2.5 rounded-xl border border-white/5 bg-[#f59e0b] text-white text-xs font-bold active:scale-95">Gold</button>
+                                    <button onclick="window.changeAccentColor('#a855f7', 'rgba(168,85,247,0.35)')" class="p-2.5 rounded-xl border border-white/5 bg-[#a855f7] text-white text-xs font-bold active:scale-95">Amethyst</button>
+                                </div>
+                            </div>
+
+                            <!-- Custom branding logo loader -->
+                            <div class="glass-panel p-6 rounded-3xl space-y-4">
+                                <div class="flex items-center gap-2 text-main">
+                                    <i data-lucide="image" class="w-5 h-5 text-yellow-500"></i>
+                                    <h3 class="font-extrabold text-lg">Change Application Brand Logo</h3>
+                                </div>
+                                <p class="text-xs text-gray-400">Select a local image to dynamically update site headers, sidebar and desktop logos.</p>
+                                <div class="flex items-center gap-4">
+                                    <img id="adminLogoPreview" src="https://images.unsplash.com/photo-1515549833447-24af30343885?w=150" class="w-16 h-16 rounded-2xl object-cover ring-2 ring-white/10">
+                                    <input type="file" id="appLogoUpload" accept="image/*" class="hidden">
+                                    <label for="appLogoUpload" class="bg-white/10 hover:bg-white/15 px-4 py-2.5 rounded-xl text-xs font-semibold cursor-pointer transition">
+                                        Browse local file
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Publish New Feed Post -->
+                            <div class="glass-panel p-6 rounded-3xl space-y-4">
+                                <div class="flex items-center gap-2 text-main">
+                                    <i data-lucide="rss" class="w-5 h-5 text-yellow-500"></i>
+                                    <h3 class="font-extrabold text-lg">Publish a Geologic Update</h3>
+                                </div>
+                                <p class="text-xs text-gray-400">Add a story, news, video or photo directly to the Twitter-style Home Feed stream.</p>
+                                
+                                <div class="space-y-4">
+                                    <textarea id="adminStoryContent" rows="4" placeholder="Draft a new discovery log, field notes or update..." class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-yellow-500"></textarea>
+                                    
+                                    <div>
+                                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-2">Upload Story Media (Photo / Video)</label>
+                                        <input type="file" id="adminStoryMedia" accept="image/*,video/*" class="w-full text-xs text-gray-400 bg-black/25 border border-white/10 rounded-xl px-4 py-3 cursor-pointer">
+                                    </div>
+
+                                    <button id="publishPostBtn" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-extrabold py-3.5 rounded-xl transition shadow-lg active:scale-[0.98]">
+                                        Publish Story & Send Real-Time Alert
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Add minerals registry -->
+                        <div class="glass-panel p-6 rounded-3xl space-y-4 h-fit">
+                            <div class="flex items-center gap-2 text-main">
+                                <i data-lucide="gem" class="w-5 h-5 text-yellow-500"></i>
+                                <h3 class="font-extrabold text-lg">Log Precious Mineral</h3>
+                            </div>
+                            <p class="text-xs text-gray-400">Update the geological catalog by providing the excavated location, total weight, and pricing matrix.</p>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1.5">Mineral Classification Name</label>
+                                    <input type="text" id="minRegName" placeholder="e.g., Raw Emerald Crystalline" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-500">
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1.5">Excavated Coordinates/Dug At</label>
+                                        <input type="text" id="minRegLoc" placeholder="e.g., Lilongwe Outskirts" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1.5">Excavation Weight</label>
+                                        <input type="text" id="minRegWeight" placeholder="e.g., 5.6 kg" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-500">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1.5">Price Matrix</label>
+                                    <input type="text" id="minRegPrice" placeholder="e.g., $150 / gram" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-500">
+                                </div>
+
+                                <div>
+                                    <label class="block text-[10px] uppercase font-bold text-gray-400 mb-2">Display Photograph</label>
+                                    <input type="file" id="minRegPhoto" accept="image/*" class="w-full text-xs text-gray-400 bg-black/25 border border-white/10 rounded-xl px-4 py-2.5 cursor-pointer">
+                                </div>
+
+                                <button id="publishMineralBtn" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-extrabold py-3.5 rounded-xl transition shadow-lg active:scale-[0.98]">
+                                    Record Mineral Asset
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= SETTINGS & CONTACT TAB ================= -->
+            <section id="tab-settings" class="tab-content hidden animate-slideup max-w-xl">
+                <div>
+                    <h2 class="text-3xl font-black tracking-tight" id="titleSystemConfig">System Configuration</h2>
+                    <p class="text-sm text-gray-400" id="subSystemConfig">Modify global parameters and administrative geological hotlines.</p>
+                </div>
+
+                <div class="glass-panel p-8 rounded-3xl space-y-6">
+                    <div>
+                        <h3 class="font-extrabold text-lg mb-2" id="titleConfigureContact">Configure Administrative Contact</h3>
+                        <p class="text-xs text-gray-400 mb-4" id="subConfigureContact">Set verified geological support metrics for active network users.</p>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1.5" id="lblGeologyHotline">Geology Hotline</label>
+                                <input type="text" id="settingPhone" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1.5" id="lblDeskEmail">Administrative Desk Email</label>
+                                <input type="email" id="settingEmail" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="border-white/5">
+
+                    <button id="saveSettingsBtn" class="w-full dynamic-bg-accent hover:opacity-90 text-white font-extrabold py-3.5 rounded-xl transition shadow-lg active:scale-95" id="btnUpdateSettings">
+                        Update Core Settings
+                    </button>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- FIREBASE SDK ENGINE AND SYSTEM LOGIC -->
+    <script type="module">
+        // Import Firebase components
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, addDoc, updateDoc, collection, query, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Verified Firebase Config
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
+            apiKey: "AIzaSyDWGRZIMRCRdbJw_POdsdzWm_HFjVf4hXI",
             authDomain: "the-mining-blog265.firebaseapp.com",
             projectId: "the-mining-blog265",
             storageBucket: "the-mining-blog265.firebasestorage.app",
             messagingSenderId: "695888035037",
-            appId: "1:695888035037:web:f91c76da82a2c3d98f6f34"
+            appId: "1:695888035037:web:f91c76da82a2c3d98f6f34",
+            measurementId: "G-LQKX5699PD"
         };
 
+        // Initialize Firebase Apps
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
+        const appId = "the-mining-blog265";
 
-        // Simple fetch to display posts from Firestore
-        const feedContainer = document.getElementById('feed');
-        
-        // This listens to your "posts" collection
-        onSnapshot(collection(db, "posts"), (snapshot) => {
-            feedContainer.innerHTML = ''; 
-            snapshot.forEach((doc) => {
-                const post = doc.data();
-                feedContainer.innerHTML += `
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                        <h3 class="font-bold text-lg">${post.authorName || 'Explorer'}</h3>
-                        <p class="mt-2 text-gray-800">${post.text}</p>
-                    </div>
-                `;
-            });
+        // App state manager
+        const STATE = {
+            currentUser: null,
+            theme: 'dark',
+            activeTab: 'feed',
+            logoUrl: 'https://images.unsplash.com/photo-1515549833447-24af30343885?w=150',
+            activeContactUid: null,
+            contacts: [],
+            settings: {
+                phone: "+265 (0) 888 12 34 56",
+                email: "desk@theminingblog265.org"
+            },
+            isAdminAuthenticated: false,
+            lang: 'en',
+            mohsData: [
+                { rank: 1, mineral: "Talc", formula: "Mg3Si4O10(OH)2", absolute: "1", notes: "Scratched easily by fingernail." },
+                { rank: 2, mineral: "Gypsum", formula: "CaSO4·2H2O", absolute: "3", notes: "Scratched by fingernail." },
+                { rank: 3, mineral: "Calcite", formula: "CaCO3", absolute: "9", notes: "Scratched by copper coin." },
+                { rank: 4, mineral: "Fluorite", formula: "CaF2", absolute: "21", notes: "Scratched easily by pocket knife." },
+                { rank: 5, mineral: "Apatite", formula: "Ca5(PO4)3(F,Cl,OH)", absolute: "48", notes: "Scratched with difficulty by knife." },
+                { rank: 6, mineral: "Orthoclase Feldspar", formula: "KAlSi3O8", absolute: "72", notes: "Scratches glass or steel files." },
+                { rank: 7, mineral: "Quartz", formula: "SiO2", absolute: "100", notes: "Scratches feldspar easily." },
+                { rank: 8, mineral: "Topaz", formula: "Al2SiO4(F,OH)2", absolute: "200", notes: "Scratches quartz easily." },
+                { rank: 9, mineral: "Corundum", formula: "Al2O3", absolute: "400", notes: "Scratches topaz. Cutters choice." },
+                { rank: 10, mineral: "Diamond", formula: "C", absolute: "1600", notes: "Hardest known mineral. Scratches all others." }
+            ]
+        };
+
+        // Translative UI Prefs (English, Chichewa, Tumbuka, Yao, Zulu, Bemba)
+        const DICTIONARY = {
+            en: {
+                brand: "mining blog265",
+                subBrand: "Geological Hub",
+                feedTitle: "Geology Feed",
+                feedSub: "Discover recent stories, field research, and global excavation news.",
+                minTitle: "Local Minerals Catalog",
+                minSub: "Discover precious metals, gemstones, and unique raw ores excavated locally.",
+                toolTitle: "Geologist Toolkit",
+                toolSub: "Advanced structural calculators and reference standards for mineral analysis.",
+                chatTitle: "Chats Hub",
+                chatSub: "Select a verified mining user from the Directory list to start a secure discussion thread.",
+                profileTitle: "Geologist Profile",
+                profileSub: "Configure your geological identification card, details and profile avatar.",
+                adminTitle: "Geologist Command Center",
+                adminSub: "Exclusive administration board for managing feeds, site logo assets, and logging local minerals.",
+                configTitle: "System Configuration",
+                configSub: "Modify global parameters and administrative geological hotlines.",
+                tourBtn: "Start Guided Tour",
+                tourS1_h: "Welcome to mining blog265",
+                tourS1_d: "This premium platform connects geological teams globally with high-performance real-time synchronization.",
+                tourS2_h: "Home Feed Stream",
+                tourS2_d: "Read logs, play field videos, post reactions, and write nested comment replies on administrative updates.",
+                tourS3_h: "Local Mineral Directory",
+                tourS3_d: "Log verified excavated materials with specific characteristics like coords, weight, and pricing matrices.",
+                tourS4_h: "Field Identification Tools",
+                tourS4_d: "Analyze bedding strike and dip thicknesses or verify crystal properties with our Mohs scale checker.",
+                tourS5_h: "Admin Center Authorization",
+                tourS5_d: "Commanders can enter 'ignatius2026' to customize application themes, logos, and publish alerts.",
+                loginSub: "Enter your credentials to connect with geologists worldwide."
+            },
+            ny: {
+                brand: "mining blog265",
+                subBrand: "Malo a Miyala ndi Migodi",
+                feedTitle: "Zolemba za Geology",
+                feedSub: "Pezani nkhani zaposachedwa, kafukufuku, komanso nkhani zakumbidwa padziko lonse lapansi.",
+                minTitle: "Mndandanda wa Miyala M'deralo",
+                minSub: "Pezani zitsulo zamtengo wapatali, miyala yamtengo wapatali, komanso miyala yosowa yomwe yakumbidwa m'deralo.",
+                toolTitle: "Zida za Geologist",
+                toolSub: "Ma calculator otsogola komanso miyezo yodziwira miyala.",
+                chatTitle: "Malo a Chats",
+                chatSub: "Sankhani munthu wotsimikizika pa mndandandawu kuti muyambe kucheza naye mwachisisi.",
+                profileTitle: "Mbiri ya Geologist",
+                profileSub: "Konzani khadi lanu lachidziwitso cha geologist, tsatanetsatane komanso chithunzi chanu.",
+                adminTitle: "Malo Oyang'anira Akuluakulu",
+                adminSub: "Gulu lapadera la oyang'anira posintha nkhani, zizindikiro zatsamba, ndi kulembetsa miyala.",
+                configTitle: "Kukonza System",
+                configSub: "Sinthani zinthu zosiyanasiyana zapadziko lonse lapansi komanso matelefoni a oyang'anira.",
+                tourBtn: "Yambitsani Ulendo Wophunzitsa",
+                tourS1_h: "Takulandirani ku mining blog265",
+                tourS1_d: "Tsamba labwino kwambiri limeneli limagwirizanitsa matimu a geologists padziko lonse ndi luso lolumikizana munthawi yeniyeni.",
+                tourS2_h: "Malo a Zolemba (Feed)",
+                tourS2_d: "Werengani nkhani, onerani makanema, thirani ndemanga, komanso 'Like' nkhani zaposachedwa za migodi.",
+                tourS3_h: "Mndandanda wa Miyala",
+                tourS3_d: "Lembani miyala yomwe yakumbidwa ndi zinthu monga malo, kulemera kwake, ndi mitengo yake.",
+                tourS4_h: "Zida zodziwira miyala",
+                tourS4_d: "Werengerani makulidwe a nthaka kapena tsimikizirani kulimba kwa miyala pogwiritsa ntchito Mohs helper.",
+                tourS5_h: "Chilolezo cha Oyang'anira",
+                tourS5_d: "Oyang'anira akhoza kulemba 'ignatius2026' kuti asinthe mitundu yatsamba, logo, ndi kutumiza mauthenga achangu.",
+                loginSub: "Lowetsani zinsinsi zanu kuti mulumikizane ndi akatswiri a miyala padziko lonse lapansi."
+            },
+            tum: {
+                brand: "mining blog265",
+                subBrand: "Malo gha Sayansi ya Miyala",
+                feedTitle: "Nkhani za Geology Feed",
+                feedSub: "Sangani nkhani za sayansi ya nthaka, kafukufuku, na nkhani zakufukula migodi.",
+                minTitle: "Miyala ya M'deralo Catalog",
+                minSub: "Sangani visulo vyamtengo wapatali na miyala yakuzizipiska yomwe yasangika m'deralo.",
+                toolTitle: "Zida za Geologist",
+                toolSub: "Ma calculator gha sayansi ya miyala na miyezo yakuyezyera.",
+                chatTitle: "Malo Ghakudumbiskana",
+                chatSub: "Sankhani munthu uyo wali pa mndandanda kuti muyambe kudumbiskana mwachisisi.",
+                profileTitle: "Mbiri ya Geologist",
+                profileSub: "Konzani khadi linu, vithunzi na mbiri yinu ya sayansi ya nthaka.",
+                adminTitle: "Malo gha Bwana Geologist",
+                adminSub: "Malo ghakuvikilirika ghakusinthira vithunzi, mitundu na kulembesa miyala yapadera.",
+                configTitle: "Kusintha kwa System",
+                configSub: "Sinthani nambara zafoni za bwana na ma imelo ghakuchitira ntchito.",
+                tourBtn: "Yambani Ulendo wa Maphunziro",
+                tourS1_h: "Tikukupokelerani ku mining blog265",
+                tourS1_d: "Webusayiti iyi yikukolerana na matimu ghose gha sayansi ya nthaka pa caru cose mwa chisisi.",
+                tourS2_h: "Home Feed (Nkhani)",
+                tourS2_d: "Belengani malipoti, wonani mavidiyo, lembani ndemanga, na kulayika nkhani zaposachedwa.",
+                tourS3_h: "Mndandanda wa Miyala",
+                tourS3_d: "Lembani miyala yomwe yasangika, uzito wake, malo ghake na mitengo yake mu msika.",
+                tourS4_h: "Zida Zakuyezyera",
+                tourS4_d: "Pimani ukhaliro wa nthaka na miyala yakuzika panji kupima kulimba kwake na Mohs helper.",
+                tourS5_h: "Kunjira kwa Bwana",
+                tourS5_d: "Lembani kiyi wakuti 'ignatius2026' kuti mjule mbali yakusinthira logo, mitundu na kutumiza mauthenga achangu.",
+                loginSub: "Lembani imelo na chinsinsi chanu kuti mukolerane na bageologists pa caru cose."
+            },
+            yao: {
+                brand: "mining blog265",
+                subBrand: "Chitabu cha Maganga ga Migodi",
+                feedTitle: "Nkhani sya Geology",
+                feedSub: "Kuwona mbiri sya golide, maganga ga mtengo, ni yakukumbila ya pachilambo chosope.",
+                minTitle: "Chikole cha Maganga ga Mdera",
+                minSub: "Kusola upile wawuona maganga gamtengo ni mitengo jakwe mdera jenu.",
+                toolTitle: "Zida sya Geologist",
+                toolSub: "Zida syakuyejechesya kulungama ni kuyezyera maganga mwachangu.",
+                chatTitle: "Malo ga Chats",
+                chatSub: "Sankhani m'modzi jwakuvikilirika mndandanda m'miche kutandila kuchegula mwachisisi.",
+                profileTitle: "Mbiri ja Geologist",
+                profileSub: "Konzani chitabu chenu ni kusimba ya masengo genu mwachisisi.",
+                adminTitle: "Malo ga Wakulu Oyang'anira",
+                adminSub: "Malo gakusinthila logo ja matandala gano, mitundu, ni kulembesya maganga.",
+                configTitle: "Kukonza parameters dya system",
+                configSub: "Kusintha matelefoni dya wakulu oyang'anira migodi.",
+                tourBtn: "Tandilani Ulendo wa Chimanyililo",
+                tourS1_h: "Poko mbili ku mining blog265",
+                tourS1_d: "Matandala gano gakukamuchisya geologists wosope pachilambo kuti asimbaneje mwachisisi.",
+                tourS2_h: "Feed ja Nkhani",
+                tourS2_d: "Kuwona nkhani, kutambila mafilimu dya migodi, ni kusimba ndemanga mwa upile.",
+                tourS3_h: "Mndandanda ga Maganga",
+                tourS3_d: "Kulembesya maganga gasangiche, kulemelela kwakwe ni mtengo pa gramu iliyose.",
+                tourS4_h: "Zida syakuyezyera",
+                tourS4_d: "Kuyeja kulimba kwa maganga pogwiritsa ntchito Mohs helper.",
+                tourS5_h: "Kujula Malo ga Wakulu",
+                tourS5_d: "Lembani kiyi dya 'ignatius2026' kuti msinthe mitundu dya matandala gano ni kuteleka alerts.",
+                loginSub: "Lembani password ni imelo jenu kuti mkamulane ni matimu dya geologists pachilambo chosope."
+            },
+            zu: {
+                brand: "mining blog265",
+                subBrand: "Ikhasi Lezokumbiwa Phansi",
+                feedTitle: "Okuphakelayo Kwe-Geology",
+                feedSub: "Thola izindaba zakamuva zocwaningo lwezokumbiwa phansi nokuphakelayo kwemayini.",
+                minTitle: "Ikhathalogi Yamaminerali Wendawo",
+                minSub: "Thola amatshe ayigugu nezinto eziyimfihlo ezimbiwe phansi kule ndawo.",
+                toolTitle: "Ithuluzi Le-Geologist",
+                toolSub: "Izibali ezithuthukisiwe namazinga ereferensi yokuhlaziya amaminerali.",
+                chatTitle: "Ingxoxo Hub",
+                chatSub: "Khetha umsebenzisi oqinisekisiwe ohlwini lwemibhalo ukuze uqale ingxoxo evikelekile.",
+                profileTitle: "Iphrofayili Ye-Geologist",
+                profileSub: "Lungiselela ikhadi lakho likamazisi, imininingwane yakho nesithombe sakho sokuphrofayili.",
+                adminTitle: "Isikhungo Somyalo Somlawuli",
+                adminSub: "Ibhodi ekhethekile yokulawula izindaba, amalogo, kanye namaminerali amasha.",
+                configTitle: "Ukulungiswa Kwesistimu",
+                configSub: "Lungisa izinombolo zocingo nemiyalezo esheshayo yabasekeli bemayini.",
+                tourBtn: "Qala Uhambo Olunolwazi",
+                tourS1_h: "Siyakwamukela ku-mining blog265",
+                tourS1_d: "Le nkundla ye-premium ixhumanisa amaqembu abavukuzi emhlabeni jikelele ngesikhathi sangempela.",
+                tourS2_h: "Okuphakelayo Okubukhoma (Feed)",
+                tourS2_d: "Funda izindaba, dlala amavidiyo endaweni, beka amazwi wakho, bese 'Uthande' okuthunyelwe.",
+                tourS3_h: "Ikhathalogi Yamaminerali",
+                tourS3_d: "Faka izinto ezintsha ezimbiwe phansi, isisindo, izixhumanisi zazo, kanye namanani emakethe.",
+                tourS4_h: "Amathuluzi Okuhlaziya",
+                tourS4_d: "Bala ukujiya kwensimbi noma usebenzise i-Mohs scale helper ukuhlaziya ubulukhuni bayo.",
+                tourS5_h: "Igunya Likamlawuli",
+                tourS5_d: "Faka ukhiye othi 'ignatius2026' ukuze ushintshe imibala yesayithi, amalogo, uphinde uthumele ama-alerts.",
+                loginSub: "Faka i-imeyili yakho nephasiwedi ukuze uxhume nabasebenzi bezokumbiwa phansi emhlabeni jikelele."
+            },
+            bem: {
+                brand: "mining blog265",
+                subBrand: "Icitabo ca Milimo ya Panshi",
+                feedTitle: "Amalyashi ya Geology Feed",
+                feedSub: "Sangeniko amalyashi yonse ayapya aya mu migodi ne fikope fya mabwe ya mutengo.",
+                minTitle: "Ifikope fya Mabwe ya Muno Calo",
+                minSub: "Moneni ifisulo fyonse bafukula muno calo, ne fyo fyamoneka ne mpiya sha fyo.",
+                toolTitle: "Ifyakupimako ifya Geologist",
+                toolSub: "Ifibombelo fya sayansi iya milimo ya panshi ne fyakupimako muli mabwe.",
+                chatTitle: "Uko Basosela Chats",
+                chatSub: "Salenipo umubomfi uulemoneka pa mutandala ukutandila ukulanshanya mu chisisi.",
+                profileTitle: "Imbiri ya Geologist",
+                profileSub: "Lembeni imbiri yenu yonse ne fyo mwashibila milimo ya migodi.",
+                adminTitle: "Uko Umukalamba Awamina",
+                adminSub: "Apa mukasanga amandala yonse aya bwana aya kusinthilako amalogo ne mpiya sha mabwe.",
+                configTitle: "Ukupekanya System",
+                configSub: "Sintheniko amafoni aya bwana ne mail ya kulembelako imilimo.",
+                tourBtn: "Tandileni Uhambo Lwecitabo",
+                tourS1_h: "Tusansamwike ukupokeleleni kuli mining blog265",
+                tourS1_d: "Iyi system ya premium ilaleta pamo babomfi ba migodi bonse mwi sonde muli maseva yesu.",
+                tourS2_h: "Ukulanshanya Kufikope (Feed)",
+                tourS2_d: "Belengeni amalyashi, takeniko amavidiyo, bikeniko ifisoso fyenu (comments), no kutila 'Like'.",
+                tourS3_h: "Amabwe Bafukula",
+                tourS3_d: "Lembeni imisango ya mabwe bafukula, ubufito bwa fyo, ne ncende basangilapo.",
+                tourS4_h: "Ifibombelo fya Kupima",
+                tourS4_d: "Pimeni ubufiku bwa matipa nelyo ukushibisha ubukose bwa mabwe mu Mohs Helper.",
+                tourS5_h: "Ukwingila kwa Bwana",
+                tourS5_d: "Lembeni kiyi ya chishinka 'ignatius2026' pakusinthako amalogo ne mibele yonse iya system.",
+                loginSub: "Lembenimo imelo yenu ne password pakukutika pamo na babomfi bonse iya migodi mwi sonde."
+            }
+        };
+
+        let tourStep = 1;
+        window.triggerInteractiveTour = function() {
+            tourStep = 1;
+            document.getElementById('tourModal').classList.remove('hidden');
+            renderTourStep();
+        };
+
+        window.closeTour = function() {
+            document.getElementById('tourModal').classList.add('hidden');
+        };
+
+        window.prevTourStep = function() {
+            if (tourStep > 1) {
+                tourStep--;
+                renderTourStep();
+            }
+        };
+
+        window.nextTourStep = function() {
+            if (tourStep < 5) {
+                tourStep++;
+                renderTourStep();
+            } else {
+                closeTour();
+                triggerToastAlert("Tour Completed", "You are ready to navigate the mining blog265 workspace!");
+            }
+        };
+
+        // Render current onboarding slide in preferred language
+        function renderTourStep() {
+            const langKeys = DICTIONARY[STATE.lang] || DICTIONARY['en'];
+            const heading = document.getElementById('tourHeading');
+            const desc = document.getElementById('tourDescription');
+            const prevBtn = document.getElementById('tourPrevBtn');
+            const nextBtn = document.getElementById('tourNextBtn');
+            const progress = document.getElementById('tourProgress');
+
+            progress.innerText = `Step ${tourStep} of 5`;
+            prevBtn.disabled = (tourStep === 1);
+
+            if (tourStep === 5) {
+                nextBtn.innerText = "Finish";
+            } else {
+                nextBtn.innerText = "Next Step";
+            }
+
+            switch(tourStep) {
+                case 1:
+                    heading.innerText = langKeys.tourS1_h;
+                    desc.innerText = langKeys.tourS1_d;
+                    break;
+                case 2:
+                    heading.innerText = langKeys.tourS2_h;
+                    desc.innerText = langKeys.tourS2_d;
+                    switchTab('feed');
+                    break;
+                case 3:
+                    heading.innerText = langKeys.tourS3_h;
+                    desc.innerText = langKeys.tourS3_d;
+                    switchTab('minerals');
+                    break;
+                case 4:
+                    heading.innerText = langKeys.tourS4_h;
+                    desc.innerText = langKeys.tourS4_d;
+                    switchTab('toolkit');
+                    break;
+                case 5:
+                    heading.innerText = langKeys.tourS5_h;
+                    desc.innerText = langKeys.tourS5_d;
+                    switchTab('admin');
+                    break;
+            }
+        }
+
+        // Translate dynamic UI sections
+        window.setSystemLanguage = function(lang) {
+            STATE.lang = lang;
+            const dict = DICTIONARY[lang] || DICTIONARY['en'];
+
+            // Sidebar translate
+            document.getElementById('sidebarBrandName').innerText = dict.brand;
+            document.getElementById('mobileBrandName').innerText = dict.brand;
+            document.getElementById('sidebarSubName').innerText = dict.subBrand;
+            document.getElementById('lblPrefLang').innerText = "Preferred Language";
+            document.getElementById('lblBtnTour').innerText = dict.tourBtn;
+
+            // Nav Tabs Translate
+            document.getElementById('lblNavFeed').innerText = dict.feedTitle;
+            document.getElementById('lblNavMinerals').innerText = dict.minTitle;
+            document.getElementById('lblNavToolkit').innerText = dict.toolTitle;
+            document.getElementById('lblNavChats').innerText = dict.chatTitle;
+            document.getElementById('lblNavProfile').innerText = dict.profileTitle;
+            document.getElementById('lblNavAdmin').innerText = "Admin Board";
+            document.getElementById('lblNavSettings').innerText = dict.configTitle;
+
+            // Main Tab Headers
+            document.getElementById('titleGeologyFeed').innerText = dict.feedTitle;
+            document.getElementById('subGeologyFeed').innerText = dict.feedSub;
+            document.getElementById('titleMineralsCatalog').innerText = dict.minTitle;
+            document.getElementById('subMineralsCatalog').innerText = dict.minSub;
+            document.getElementById('titleGeologistToolkit').innerText = dict.toolTitle;
+            document.getElementById('subGeologistToolkit').innerText = dict.toolSub;
+            document.getElementById('titleActiveDirectory').innerText = dict.chatTitle;
+            document.getElementById('lblSelectProfileMessage').innerText = dict.chatSub;
+            document.getElementById('titleGeologistProfile').innerText = dict.profileTitle;
+            document.getElementById('subGeologistProfile').innerText = dict.profileSub;
+            document.getElementById('titleCommandCenter').innerText = dict.adminTitle;
+            document.getElementById('subCommandCenter').innerText = dict.adminSub;
+            document.getElementById('titleSystemConfig').innerText = dict.configTitle;
+            document.getElementById('subSystemConfig').innerText = dict.configSub;
+
+            // Onboarding Translate if active
+            renderTourStep();
+        };
+
+        // --- AUTH SECTION ---
+        const authForm = document.getElementById('authForm');
+        const authBtnSpinner = document.getElementById('authBtnSpinner');
+        const authBtnText = document.getElementById('authBtnText');
+
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            authBtnSpinner.classList.remove('hidden');
+            authBtnText.innerText = "Authenticating...";
+
+            try {
+                // Try logging in
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                // If user doesn't exist, register them automatically
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+                    try {
+                        await createUserWithEmailAndPassword(auth, email, password);
+                    } catch (regError) {
+                        triggerToastAlert("Auth Error", "Authentication failed: " + regError.message);
+                        authBtnSpinner.classList.add('hidden');
+                        authBtnText.innerText = "Enter Dashboard";
+                        return;
+                    }
+                } else {
+                    triggerToastAlert("Auth Error", "Error: " + error.message);
+                    authBtnSpinner.classList.add('hidden');
+                    authBtnText.innerText = "Enter Dashboard";
+                    return;
+                }
+            }
         });
+
+        // Track Auth States
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                STATE.currentUser = user;
+                
+                // Close modal
+                document.getElementById('loginModal').style.display = 'none';
+
+                // Fetch or initialize profile
+                const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', user.uid);
+                const profileSnap = await getDoc(profileRef);
+
+                let defaultName = user.email.split('@')[0];
+                defaultName = defaultName.charAt(0).toUpperCase() + defaultName.slice(1);
+
+                let profileData = {
+                    uid: user.uid,
+                    name: defaultName,
+                    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100",
+                    spec: "Geotechnical Analyst",
+                    bio: "Artisanal prospecting specialist focusing on regional gold, gemstone sorting, and geological field mapping."
+                };
+
+                if (profileSnap.exists()) {
+                    profileData = profileSnap.data();
+                } else {
+                    await setDoc(profileRef, profileData);
+                }
+
+                // Sync current user states
+                document.getElementById('activeUserName').innerText = profileData.name;
+                document.getElementById('activeUserAvatar').src = profileData.avatar;
+                document.getElementById('profileCardName').innerText = profileData.name;
+                document.getElementById('profileCardImg').src = profileData.avatar;
+                document.getElementById('profileCardEmail').innerText = user.email;
+
+                // Sync profile edits input
+                document.getElementById('editProfileName').value = profileData.name;
+                document.getElementById('editProfileSpec').value = profileData.spec;
+                document.getElementById('editProfileBio').value = profileData.bio;
+
+                triggerToastAlert("Authorization Confirmed", `Connected securely as ${profileData.name}.`);
+
+                // Start active real-time queries for data
+                initRealtimeQueries();
+
+                // Open onboarding guided tour automatically for first-time use
+                setTimeout(() => {
+                    triggerInteractiveTour();
+                }, 1500);
+
+            } else {
+                document.getElementById('loginModal').style.display = 'flex';
+            }
+        });
+
+        // --- REAL-TIME DATA QUERY REGIONS ---
+        function initRealtimeQueries() {
+            if (!STATE.currentUser) return;
+
+            // 1. Home Feed posts stream
+            const postsQuery = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+            onSnapshot(postsQuery, (snapshot) => {
+                const postsList = document.getElementById('postsList');
+                const noPosts = document.getElementById('noPostsMessage');
+                
+                // Gather documents and sort in-memory to keep code simple & fast (RULE 2)
+                const docs = [];
+                snapshot.forEach(doc => {
+                    docs.push({ id: doc.id, ...doc.data() });
+                });
+                docs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+                if (docs.length === 0) {
+                    noPosts.classList.remove('hidden');
+                } else {
+                    noPosts.classList.add('hidden');
+                }
+
+                // Render posts dynamically
+                postsList.querySelectorAll('.post-dynamic').forEach(el => el.remove());
+                docs.forEach(post => {
+                    const postDiv = document.createElement('div');
+                    postDiv.className = "post-dynamic glass-panel p-6 rounded-3xl space-y-4 animate-slideup";
+                    postDiv.id = `post-${post.id}`;
+
+                    let mediaElement = '';
+                    if (post.mediaSrc) {
+                        if (post.isVideo) {
+                            mediaElement = `
+                                <div class="rounded-2xl overflow-hidden shadow-lg border border-white/5 bg-black/40">
+                                    <video src="${post.mediaSrc}" controls class="w-full max-h-96 object-cover"></video>
+                                </div>`;
+                        } else {
+                            mediaElement = `
+                                <div class="rounded-2xl overflow-hidden shadow-lg border border-white/5">
+                                    <img src="${post.mediaSrc}" class="w-full max-h-96 object-cover">
+                                </div>`;
+                        }
+                    }
+
+                    // Count likes
+                    const likeCount = post.likedBy ? post.likedBy.length : 0;
+                    const hasLiked = post.likedBy && post.likedBy.includes(STATE.currentUser.uid);
+                    const heartClass = hasLiked ? 'text-red-500 liked' : '';
+
+                    // Comments structure
+                    const comments = post.comments || [];
+                    let commentsHTML = '';
+                    comments.forEach(comment => {
+                        commentsHTML += `
+                            <div class="bg-black/15 p-3.5 rounded-2xl flex gap-3 text-xs leading-relaxed animate-slideup">
+                                <img src="${comment.avatar}" class="w-7 h-7 rounded-full object-cover">
+                                <div>
+                                    <div class="flex items-center gap-1.5 mb-1">
+                                        <span class="font-bold">${comment.name}</span>
+                                        <span class="text-gray-500">• Just now</span>
+                                    </div>
+                                    <p class="text-gray-300">${comment.text}</p>
+                                </div>
+                            </div>`;
+                    });
+
+                    postDiv.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <img src="${post.authorAvatar || STATE.logoUrl}" class="w-11 h-11 rounded-full object-cover ring-2 ring-yellow-500/50">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-bold text-sm">${post.authorName || 'Primary Admin'}</h4>
+                                    <span class="bg-yellow-500/20 text-yellow-400 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full">${post.authorRole || 'Admin Geologist'}</span>
+                                </div>
+                                <span class="text-xs text-gray-400">Published update</span>
+                            </div>
+                        </div>
+                        <p class="text-sm leading-relaxed text-gray-300">${post.content}</p>
+                        ${mediaElement}
+                        <div class="flex items-center gap-6 border-t border-white/5 pt-4 text-gray-400 text-xs">
+                            <button onclick="window.likePost('${post.id}')" class="flex items-center gap-2 hover:text-red-500 transition active:scale-95 ${heartClass}">
+                                <i data-lucide="heart" class="w-4 h-4"></i> <span class="like-count">${likeCount}</span> Likes
+                            </button>
+                            <button onclick="window.toggleCommentsSection('${post.id}')" class="flex items-center gap-2 hover:text-blue-400 transition">
+                                <i data-lucide="message-circle" class="w-4 h-4"></i> <span class="comment-count">${comments.length}</span> Comments
+                            </button>
+                            <button class="flex items-center gap-2 hover:text-green-400 transition ml-auto"><i data-lucide="share" class="w-4 h-4"></i> Share</button>
+                        </div>
+                        <!-- Comments wrapper -->
+                        <div class="comments-box border-t border-white/5 pt-4 space-y-4 hidden" id="comments-box-${post.id}">
+                            <div class="space-y-3">${commentsHTML}</div>
+                            <div class="flex gap-2">
+                                <input type="text" id="comment-input-${post.id}" placeholder="Add a comment to this geologic record..." class="flex-1 bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-blue-500">
+                                <button onclick="window.submitComment('${post.id}')" class="dynamic-bg-accent hover:opacity-90 px-4 py-2 rounded-xl text-xs font-bold text-white transition active:scale-95">Reply</button>
+                            </div>
+                        </div>
+                    `;
+
+                    postsList.appendChild(postDiv);
+                });
+                lucide.createIcons();
+            }, (error) => {
+                console.error("Posts loading error: ", error);
+            });
+
+            // 2. Local Minerals Catalog stream
+            const mineralsQuery = collection(db, 'artifacts', appId, 'public', 'data', 'minerals');
+            onSnapshot(mineralsQuery, (snapshot) => {
+                const mineralsList = document.getElementById('mineralsList');
+                const noMinerals = document.getElementById('noMineralsMessage');
+                
+                mineralsList.innerHTML = '';
+                const docs = [];
+                snapshot.forEach(doc => docs.push(doc.data()));
+                docs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+                if (docs.length === 0) {
+                    noMinerals.classList.remove('hidden');
+                } else {
+                    noMinerals.classList.add('hidden');
+                }
+
+                docs.forEach(mineral => {
+                    const card = document.createElement('div');
+                    card.className = "glass-panel overflow-hidden rounded-3xl flex flex-col h-full border border-white/5 hover:border-yellow-500/30 transition-all duration-300 animate-slideup";
+                    card.innerHTML = `
+                        <div class="h-48 overflow-hidden relative">
+                            <img src="${mineral.photoSrc || 'https://images.unsplash.com/photo-1599740831644-67dd1410ea91?w=500'}" class="w-full h-full object-cover">
+                            <span class="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-xs font-black text-yellow-500">Excavated Asset</span>
+                        </div>
+                        <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
+                            <div>
+                                <h3 class="font-extrabold text-lg text-main">${mineral.name}</h3>
+                                <p class="text-xs text-gray-400 flex items-center gap-1 mt-1">
+                                    <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> ${mineral.location}
+                                </p>
+                            </div>
+                            <div class="flex items-center justify-between border-t border-white/5 pt-4">
+                                <div>
+                                    <span class="block text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Total Weight</span>
+                                    <span class="text-sm font-bold">${mineral.weight}</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="block text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Market Value</span>
+                                    <span class="text-base font-black dynamic-text-accent">${mineral.price}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    mineralsList.appendChild(card);
+                });
+                lucide.createIcons();
+            });
+
+            // 3. User Directories stream
+            const profilesQuery = collection(db, 'artifacts', appId, 'public', 'data', 'profiles');
+            onSnapshot(profilesQuery, (snapshot) => {
+                const list = document.getElementById('chatContactsList');
+                list.innerHTML = '';
+                
+                STATE.contacts = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.uid !== STATE.currentUser.uid) {
+                        STATE.contacts.push(data);
+                    }
+                });
+
+                document.getElementById('chatCountBadge').innerText = `${STATE.contacts.length} Active`;
+
+                if (STATE.contacts.length === 0) {
+                    list.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Waiting for other geologists to log in...</p>`;
+                }
+
+                STATE.contacts.forEach(contact => {
+                    const card = document.createElement('div');
+                    const isActiveChat = STATE.activeContactUid === contact.uid;
+                    const activeStyles = isActiveChat ? 'bg-white/10 border-l-4 dynamic-border-accent' : 'hover:bg-white/5';
+                    card.className = `contact-card flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all ${activeStyles}`;
+                    card.setAttribute('onclick', `window.selectChatUser("${contact.uid}", "${contact.name}", "${contact.avatar}")`);
+                    card.innerHTML = `
+                        <img src="${contact.avatar}" class="w-10 h-10 rounded-full object-cover">
+                        <div class="flex-1 truncate">
+                            <h4 class="font-bold text-sm text-main">${contact.name}</h4>
+                            <p class="text-xs text-gray-400 truncate">${contact.spec || 'Geologist'}</p>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                });
+            });
+
+            // 4. Chat Messages Stream
+            const messagesQuery = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+            onSnapshot(messagesQuery, (snapshot) => {
+                // If there's an active chat selected, redraw messages
+                if (STATE.activeContactUid) {
+                    renderActiveMessages(snapshot);
+                }
+            });
+
+            // 5. App Settings Customizations stream
+            const settingsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'global');
+            onSnapshot(settingsDocRef, (snap) => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (data.logoUrl) {
+                        STATE.logoUrl = data.logoUrl;
+                        document.getElementById('sidebarLogo').src = data.logoUrl;
+                        document.getElementById('mobileLogo').src = data.logoUrl;
+                        document.getElementById('adminLogoPreview').src = data.logoUrl;
+                    }
+                    if (data.accentColor) {
+                        document.documentElement.style.setProperty('--accent', data.accentColor);
+                        document.documentElement.style.setProperty('--accent-glow', data.glowColor);
+                    }
+                    if (data.phone) {
+                        document.getElementById('settingPhone').value = data.phone;
+                    }
+                    if (data.email) {
+                        document.getElementById('settingEmail').value = data.email;
+                    }
+                }
+            });
+        }
+
+        // --- SUBMIT COMPONENT FUNCTION REGIONS ---
+
+        // Like/Unlike real-time action
+        window.likePost = async function(postId) {
+            if (!STATE.currentUser) return;
+            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+            const postSnap = await getDoc(postRef);
+            if (postSnap.exists()) {
+                const data = postSnap.data();
+                const likedBy = data.likedBy || [];
+                const myUid = STATE.currentUser.uid;
+
+                if (likedBy.includes(myUid)) {
+                    // Unlike
+                    const updatedLikes = likedBy.filter(uid => uid !== myUid);
+                    await updateDoc(postRef, { likedBy: updatedLikes });
+                } else {
+                    // Like
+                    likedBy.push(myUid);
+                    await updateDoc(postRef, { likedBy: likedBy });
+                }
+            }
+        };
+
+        // Comment Toggle & Submit
+        window.toggleCommentsSection = function(postId) {
+            const box = document.getElementById(`comments-box-${postId}`);
+            box.classList.toggle('hidden');
+        };
+
+        window.submitComment = async function(postId) {
+            const input = document.getElementById(`comment-input-${postId}`);
+            const commentText = input.value.trim();
+            if (!commentText) return;
+
+            const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', STATE.currentUser.uid);
+            const profileSnap = await getDoc(profileRef);
+            const profile = profileSnap.data();
+
+            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+            const newComment = {
+                uid: STATE.currentUser.uid,
+                name: profile.name,
+                avatar: profile.avatar,
+                text: commentText,
+                createdAt: Date.now()
+            };
+
+            await updateDoc(postRef, {
+                comments: arrayUnion(newComment)
+            });
+
+            input.value = '';
+        };
+
+        // Selection of Active chat
+        window.selectChatUser = function(uid, name, avatar) {
+            STATE.activeContactUid = uid;
+            
+            document.getElementById('activeChatHeader').classList.remove('hidden');
+            document.getElementById('chatInputBar').classList.remove('hidden');
+            document.getElementById('chatHeaderName').innerText = name;
+            document.getElementById('chatHeaderImg').src = avatar;
+
+            // Trigger manually redrawing chat log
+            const messagesQuery = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+            getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'messages', 'dummy')).then(() => {
+                // Simply reload message views
+                renderActiveMessages(null);
+            });
+        };
+
+        // Redraw Chat logs
+        async function renderActiveMessages(snapshotSnap) {
+            const chatBox = document.getElementById('chatMessages');
+            chatBox.innerHTML = '';
+
+            const renderData = (snapshot) => {
+                const allMsgs = [];
+                snapshot.forEach(doc => {
+                    allMsgs.push(doc.data());
+                });
+                // Sort by creation time
+                allMsgs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+                // Filter by conversation participant pair (RULE 2: In memory filter)
+                const conversation = allMsgs.filter(m => 
+                    (m.senderUid === STATE.currentUser.uid && m.receiverUid === STATE.activeContactUid) ||
+                    (m.senderUid === STATE.activeContactUid && m.receiverUid === STATE.currentUser.uid)
+                );
+
+                if (conversation.length === 0) {
+                    chatBox.innerHTML = `<div class="my-auto text-center text-gray-400 text-xs">Start of secure conversation. All chats are encrypted.</div>`;
+                    return;
+                }
+
+                conversation.forEach(m => {
+                    const isMe = m.senderUid === STATE.currentUser.uid;
+                    const bubble = document.createElement('div');
+                    
+                    if (m.mediaSrc) {
+                        const mediaHTML = m.isVideo 
+                            ? `<video src="${m.mediaSrc}" controls class="rounded-xl max-w-full h-auto"></video>`
+                            : `<img src="${m.mediaSrc}" class="rounded-xl max-w-full h-auto object-cover">`;
+                        
+                        bubble.className = `max-w-[80%] p-2 ${isMe ? 'bubble-out self-end' : 'bubble-in self-start'} text-sm shadow-md animate-slideup space-y-2`;
+                        bubble.innerHTML = mediaHTML;
+                    } else {
+                        bubble.className = `max-w-[80%] p-4 ${isMe ? 'bubble-out self-end' : 'bubble-in self-start'} text-sm shadow-md leading-relaxed animate-slideup`;
+                        bubble.innerText = m.text;
+                    }
+                    chatBox.appendChild(bubble);
+                });
+                chatBox.scrollTop = chatBox.scrollHeight;
+            };
+
+            if (snapshotSnap) {
+                renderData(snapshotSnap);
+            } else {
+                // Fetch directly
+                const messagesRef = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+                onSnapshot(messagesRef, renderData);
+            }
+        }
+
+        // Send Text Chats
+        window.sendTextMessage = async function() {
+            const input = document.getElementById('chatMessageInput');
+            const val = input.value.trim();
+            if (!val || !STATE.activeContactUid) return;
+
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
+                senderUid: STATE.currentUser.uid,
+                receiverUid: STATE.activeContactUid,
+                text: val,
+                createdAt: Date.now()
+            });
+
+            input.value = '';
+        };
+
+        // Bind enter press
+        document.getElementById('chatMessageInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                window.sendTextMessage();
+            }
+        });
+
+        // Chat attachment file triggers
+        document.getElementById('chatAttachMedia').addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                const isVideo = this.files[0].type.startsWith('video/');
+                reader.onload = async (e) => {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
+                        senderUid: STATE.currentUser.uid,
+                        receiverUid: STATE.activeContactUid,
+                        mediaSrc: e.target.result,
+                        isVideo: isVideo,
+                        createdAt: Date.now()
+                    });
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Verify key to unlock command controls
+        document.getElementById('verifyAdminBtn').addEventListener('click', () => {
+            const passInput = document.getElementById('adminPassKey').value;
+            if (passInput === "ignatius2026") {
+                STATE.isAdminAuthenticated = true;
+                document.getElementById('adminGate').classList.add('hidden');
+                document.getElementById('adminWorkspace').classList.remove('hidden');
+                triggerToastAlert("Admin Deck Active", "Authenticated commander session established.");
+            } else {
+                triggerToastAlert("Access Denied", "Geology passkey mismatch. Please re-verify.");
+            }
+        });
+
+        // Publish New story post on feed
+        document.getElementById('publishPostBtn').addEventListener('click', async () => {
+            const content = document.getElementById('adminStoryContent').value.trim();
+            const fileInput = document.getElementById('adminStoryMedia');
+
+            if (!content) {
+                triggerToastAlert("Error", "Please write a story description first.");
+                return;
+            }
+
+            const sendPost = async (mediaSrc, isVideo) => {
+                const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', STATE.currentUser.uid);
+                const profileSnap = await getDoc(profileRef);
+                const profile = profileSnap.data();
+
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'posts'), {
+                    content: content,
+                    mediaSrc: mediaSrc || null,
+                    isVideo: isVideo,
+                    authorName: profile.name,
+                    authorAvatar: profile.avatar,
+                    authorRole: "Admin Geologist",
+                    likedBy: [],
+                    comments: [],
+                    createdAt: Date.now()
+                });
+
+                document.getElementById('adminStoryContent').value = '';
+                fileInput.value = '';
+                switchTab('feed');
+                triggerToastAlert("Story Published", "New geologic discovery logged onto Home Feed.");
+            };
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                const isVid = fileInput.files[0].type.startsWith('video/');
+                reader.onload = (e) => {
+                    sendPost(e.target.result, isVid);
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                sendPost(null, false);
+            }
+        });
+
+        // Record New Minerals Cataloged
+        document.getElementById('publishMineralBtn').addEventListener('click', async () => {
+            const name = document.getElementById('minRegName').value.trim();
+            const location = document.getElementById('minRegLoc').value.trim();
+            const weight = document.getElementById('minRegWeight').value.trim();
+            const price = document.getElementById('minRegPrice').value.trim();
+            const photoInput = document.getElementById('minRegPhoto');
+
+            if (!name || !location || !weight || !price) {
+                triggerToastAlert("Error", "Please fill out all mineral metadata specs.");
+                return;
+            }
+
+            const sendMineral = async (photoSrc) => {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'minerals'), {
+                    name,
+                    location,
+                    weight,
+                    price,
+                    photoSrc: photoSrc || null,
+                    createdAt: Date.now()
+                });
+
+                // Clear
+                document.getElementById('minRegName').value = '';
+                document.getElementById('minRegLoc').value = '';
+                document.getElementById('minRegWeight').value = '';
+                document.getElementById('minRegPrice').value = '';
+                photoInput.value = '';
+
+                switchTab('minerals');
+                triggerToastAlert("Mineral Added", `${name} logged successfully.`);
+            };
+
+            if (photoInput.files && photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    sendMineral(e.target.result);
+                };
+                reader.readAsDataURL(photoInput.files[0]);
+            } else {
+                sendMineral(null);
+            }
+        });
+
+        // Synchronize profiles settings
+        document.getElementById('saveProfileBtn').addEventListener('click', async () => {
+            const name = document.getElementById('editProfileName').value.trim();
+            const spec = document.getElementById('editProfileSpec').value.trim();
+            const bio = document.getElementById('editProfileBio').value.trim();
+
+            if (!name) return;
+
+            const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', STATE.currentUser.uid);
+            await updateDoc(profileRef, { name, spec, bio, avatar: STATE.currentUser.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100" });
+
+            // Sync visual cards immediately
+            document.getElementById('activeUserName').innerText = name;
+            document.getElementById('profileCardName').innerText = name;
+
+            triggerToastAlert("Profile Synchronized", "Your geologist credentials are now globally live.");
+        });
+
+        // Change Profile photo local updates
+        document.getElementById('profileImageFile').addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    STATE.currentUser.avatar = e.target.result;
+                    document.getElementById('profileCardImg').src = e.target.result;
+                    document.getElementById('activeUserAvatar').src = e.target.result;
+
+                    const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', STATE.currentUser.uid);
+                    await updateDoc(profileRef, { avatar: e.target.result });
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Brand custom logo changes
+        document.getElementById('appLogoUpload').addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const res = e.target.result;
+                    document.getElementById('sidebarLogo').src = res;
+                    document.getElementById('mobileLogo').src = res;
+                    document.getElementById('adminLogoPreview').src = res;
+
+                    // Sync to Firebase Settings
+                    const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'global');
+                    await setDoc(settingsRef, { logoUrl: res }, { merge: true });
+
+                    triggerToastAlert("Branding Modified", "Site corporate identity updated globally.");
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Dynamic Accent Scheme setup
+        window.changeAccentColor = async function(hexColor, glowColor) {
+            document.documentElement.style.setProperty('--accent', hexColor);
+            document.documentElement.style.setProperty('--accent-glow', glowColor);
+
+            const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'global');
+            await setDoc(settingsRef, { accentColor: hexColor, glowColor: glowColor }, { merge: true });
+
+            triggerToastAlert("Accent Customized", "Signature color scheme updated across the network.");
+        };
+
+        // Settings updates
+        document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+            const phone = document.getElementById('settingPhone').value;
+            const email = document.getElementById('settingEmail').value;
+
+            const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'global');
+            await setDoc(settingsRef, { phone, email }, { merge: true });
+
+            triggerToastAlert("Settings Synchronized", "Support network parameters updated.");
+        });
+
+        // Push Alert toast notifier
+        window.triggerToastAlert = function(title, message) {
+            const toast = document.getElementById('pushNotification');
+            document.getElementById('notifyTitle').innerText = title;
+            document.getElementById('notifyDesc').innerText = message;
+
+            // Slide down
+            toast.style.transform = "translate(-50%, 0px)";
+            
+            // Slide up out of view after 5 seconds
+            setTimeout(() => {
+                toast.style.transform = "translate(-50%, -100px)";
+            }, 5000);
+        };
+
+        // Window load routines
+        window.onload = function() {
+            window.filterMohsScale();
+            // Start Default English translations on boot
+            window.setSystemLanguage('en');
+        };
+    </script>
+
+    <!-- GENERAL UTILITY CALCULATORS AND SYSTEM RENDERING -->
+    <script>
+        // Tab switching routine
+        function switchTab(tabId) {
+            // Toggle active sections
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.add('hidden');
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            // Toggle active nav menu buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-white/10', 'dynamic-text-accent');
+                btn.classList.add('text-gray-400', 'hover:bg-white/5', 'hover:text-white');
+            });
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-400', 'hover:bg-white/5', 'hover:text-white');
+                activeBtn.classList.add('bg-white/10', 'dynamic-text-accent');
+            }
+        }
+
+        // Structural geology Strike and Dip calculator
+        function calculateStructure() {
+            const dip = parseFloat(document.getElementById('calcDip').value) || 0;
+            const strike = parseFloat(document.getElementById('calcStrike').value) || 0;
+            const width = parseFloat(document.getElementById('calcWidth').value) || 0;
+
+            const rads = dip * (Math.PI / 180);
+            const thickness = width * Math.sin(rads);
+            let dipDir = (strike + 90) % 360;
+
+            document.getElementById('outThickness').innerText = thickness.toFixed(2);
+            document.getElementById('outDipDir').innerText = dipDir;
+        }
+
+        // Hardness search database
+        const mohsData = [
+            { rank: 1, mineral: "Talc", formula: "Mg3Si4O10(OH)2", absolute: "1", notes: "Scratched easily by fingernail." },
+            { rank: 2, mineral: "Gypsum", formula: "CaSO4·2H2O", absolute: "3", notes: "Scratched by fingernail." },
+            { rank: 3, mineral: "Calcite", formula: "CaCO3", absolute: "9", notes: "Scratched by copper coin." },
+            { rank: 4, mineral: "Fluorite", formula: "CaF2", absolute: "21", notes: "Scratched easily by pocket knife." },
+            { rank: 5, mineral: "Apatite", formula: "Ca5(PO4)3(F,Cl,OH)", absolute: "48", notes: "Scratched with difficulty by knife." },
+            { rank: 6, mineral: "Orthoclase Feldspar", formula: "KAlSi3O8", absolute: "72", notes: "Scratches glass or steel files." },
+            { rank: 7, mineral: "Quartz", formula: "SiO2", absolute: "100", notes: "Scratches feldspar easily." },
+            { rank: 8, mineral: "Topaz", formula: "Al2SiO4(F,OH)2", absolute: "200", notes: "Scratches quartz easily." },
+            { rank: 9, mineral: "Corundum", formula: "Al2O3", absolute: "400", notes: "Scratches topaz. Cutters choice." },
+            { rank: 10, mineral: "Diamond", formula: "C", absolute: "1600", notes: "Hardest known mineral. Scratches all others." }
+        ];
+
+        // Search algorithm for helper tools
+        function filterMohsScale() {
+            const query = document.getElementById('mohsSearch').value.toLowerCase();
+            const results = document.getElementById('mohsResults');
+            results.innerHTML = '';
+
+            const matched = mohsData.filter(m => m.mineral.toLowerCase().includes(query) || m.formula.toLowerCase().includes(query));
+            matched.forEach(m => {
+                const item = document.createElement('div');
+                item.className = 'p-3 bg-black/20 rounded-xl flex items-center justify-between text-xs border border-white/5';
+                item.innerHTML = `
+                    <div>
+                        <div class="font-bold text-main">${m.mineral} <span class="text-gray-400 font-normal">(${m.formula})</span></div>
+                        <p class="text-[10px] text-gray-400 mt-0.5">${m.notes}</p>
+                    </div>
+                    <div class="px-2.5 py-1 rounded-lg bg-yellow-500/10 text-yellow-400 font-black">M${m.rank}</div>
+                `;
+                results.appendChild(item);
+            });
+        }
+
+        // Theme controllers
+        function setTheme(theme) {
+            const root = document.documentElement;
+            
+            // Remove active styles from switcher
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('bg-white/10', 'dynamic-text-accent');
+                btn.classList.add('text-gray-400', 'hover:text-white');
+            });
+
+            if (theme === 'system') {
+                const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                root.setAttribute('data-theme', systemDark ? 'dark' : 'light');
+            } else {
+                root.setAttribute('data-theme', theme);
+            }
+        }
     </script>
 </body>
 </html>
