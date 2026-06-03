@@ -5,14 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>THE MINING BLOG265</title>
   
+  <!-- Core Script Engine CDNs -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   
+  <!-- Tailwind CSS Engine with custom configuration -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['SF Pro Display', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    /* Premium Motion Framework & Intersections */
+    /* Premium iOS 26 Glassmorphism transitions */
     .animate-on-scroll {
       opacity: 0;
       transform: translateY(24px);
@@ -22,26 +36,53 @@
     .translate-y-0 { transform: translateY(0px) !important; }
     
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
+      from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .animate-fadeIn { animation: fadeIn 0.35s ease forwards; }
+    .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+    /* Custom high-fidelity scrolls */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(156, 163, 175, 0.25);
+      border-radius: 10px;
+    }
+
+    /* iOS 26 Premium Frosted Glass highlights */
+    .glass-ios {
+      background: rgba(255, 255, 255, 0.45);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .dark .glass-ios {
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
   </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 transition-colors duration-500">
+<body class="bg-slate-50 dark:bg-slate-950 transition-colors duration-500 overflow-x-hidden">
 
+  <!-- React Mount Point -->
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect } = React;
+    const { useState, useEffect, useRef } = React;
 
-    // --- INITIAL DATA ARCHITECTURE ---
     const INITIAL_FEED = [
       {
         id: 1,
         author: "Admin (KAMWANJE)",
         avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-        story: "Exciting breakthrough at our central region site today! Discovered a premium vein of high-grade alluvial gold. Production efficiency is up by 25%.",
+        story: "Exciting breakthrough at our central region site today! Discovered a premium vein of high-grade alluvial gold. Production efficiency is up by 25%. Our geological models are performing extremely well.",
         media: "https://images.unsplash.com/photo-1610375229632-c7158c35a537?w=800",
         mediaType: "image",
         timestamp: "2 hours ago",
@@ -54,7 +95,9 @@
             user: "Chikondi Phiri",
             avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100",
             text: "Outstanding discovery! This is huge for the local mining sector.",
-            replies: [{ id: 201, user: "Admin", text: "Thank you Chikondi! More updates coming soon." }]
+            replies: [
+              { id: 201, user: "Admin", text: "Thank you Chikondi! More updates coming soon." }
+            ]
           }
         ]
       },
@@ -88,4 +131,1790 @@
         weight: "1.2 kilograms",
         location: "Mzimba District",
         priceUSD: 4200,
-        media: "
+        media: "https://images.unsplash.com/photo-1599707367072-cd6ada2bc375?w=600"
+      }
+    ];
+
+    const INITIAL_HYDROLOGY_LOGS = [
+      {
+        id: 1,
+        location: "Shire River Basal Aquifer",
+        waterDepth: "42.5 meters",
+        phLevel: 7.2,
+        dischargeRate: "18.4 m³/day",
+        loggedBy: "Geologist Inspector",
+        media: null
+      },
+      {
+        id: 2,
+        location: "Zomba Plateau Fractured Zone",
+        waterDepth: "115.0 meters",
+        phLevel: 6.8,
+        dischargeRate: "5.2 m³/day",
+        loggedBy: "KAMWANJE Surveyor",
+        media: null
+      }
+    ];
+
+    function App() {
+      const [currentTab, setCurrentTab] = useState('home');
+      const [darkMode, setDarkMode] = useState(true);
+      const [isAdmin, setIsAdmin] = useState(false);
+      const [adminKeyInput, setAdminKeyInput] = useState('');
+      const [adminKeyError, setAdminKeyError] = useState('');
+      const [currency, setCurrency] = useState('MWK'); // MWK or USD
+      const [siteLogo, setSiteLogo] = useState(null); // Dynamic Local Storage Logo State
+      const [siteTitle, setSiteTitle] = useState('THE MINING BLOG265'); // Configurable platform identity
+      const [usdToMwkRate, setUsdToMwkRate] = useState(1750); // Admin configurable exchange rate
+
+      // System audit logs state (Tracks all real-time platform user/admin operations)
+      const [systemLogs, setSystemLogs] = useState([
+        { id: 1, timestamp: "09:30:00 AM", category: "System", message: "MINING & CONSULTANCY265 frameworks successfully mounted." }
+      ]);
+
+      // Global safety toggles managed by admin
+      const [allowComments, setAllowComments] = useState(true);
+      const [allowRegistration, setAllowRegistration] = useState(true);
+      const [maintenanceMode, setMaintenanceMode] = useState(false);
+
+      // Admin Tab visibility controls
+      const [allowedTabs, setAllowedTabs] = useState({
+        home: true,
+        minerals: true,
+        hydrologics: true,
+        chat: true,
+        profile: true
+      });
+
+      // --- FEATURE STATES ---
+      const [feed, setFeed] = useState(INITIAL_FEED);
+      const [minerals, setMinerals] = useState(INITIAL_MINERALS);
+      const [hydroLogs, setHydroLogs] = useState(INITIAL_HYDROLOGY_LOGS);
+      const [chatMessages, setChatMessages] = useState([
+        { id: 1, sender: 'admin', text: 'Welcome to THE MINING BLOG265 official hub. How can we assist you with exploration, hydraulics, or mineral trade parameters today?', timestamp: '09:30 AM', media: null }
+      ]);
+      
+      // User Profile State (Meta-styled details)
+      const [isLoggedIn, setIsLoggedIn] = useState(false);
+      const [userEmail, setUserEmail] = useState('');
+      const [profile, setProfile] = useState({
+        name: 'Guest Explorer',
+        email: '',
+        phone: '+265 888 12 34 56',
+        bio: 'Passionate about geology and raw mineral commerce across Malawi.',
+        link: 'https://github.com',
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+        gallery: []
+      });
+
+      // Dynamic input states
+      const [newPostText, setNewPostText] = useState('');
+      const [newPostMedia, setNewPostMedia] = useState('');
+      const [newPostMediaType, setNewPostMediaType] = useState('image');
+      
+      const [newMineral, setNewMineral] = useState({ name: '', weight: '', location: '', priceUSD: '', media: '' });
+      const [chatInput, setChatInput] = useState('');
+      const [commentInputs, setCommentInputs] = useState({});
+      const [replyInputs, setReplyInputs] = useState({});
+      const [activeReplyBox, setActiveReplyBox] = useState(null);
+      const [isRecording, setIsRecording] = useState(false);
+
+      // Creative Flow Modals
+      const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+      const [isBioModalOpen, setIsBioModalOpen] = useState(false);
+
+      // Meta edit profile state buffer
+      const [tempProfile, setTempProfile] = useState({ ...profile });
+
+      // --- EDITING STATES FOR FEED AND INVENTORY ---
+      const [editingPostId, setEditingPostId] = useState(null);
+      const [editingPostText, setEditingPostText] = useState('');
+      const [editingMineralId, setEditingMineralId] = useState(null);
+      const [editingMineralForm, setEditingMineralForm] = useState({ name: '', weight: '', location: '', priceUSD: '', media: '' });
+
+      // --- HYDROLOGICS TAB STATES ---
+      const [conductivity, setConductivity] = useState('15'); // K (m/day)
+      const [gradient, setGradient] = useState('0.02');      // i (dh/dl)
+      const [crossArea, setCrossArea] = useState('250');      // A (m²)
+      const [calculatedDischarge, setCalculatedDischarge] = useState(null);
+
+      const [newHydroLocation, setNewHydroLocation] = useState('');
+      const [newHydroDepth, setNewHydroDepth] = useState('');
+      const [newHydroPh, setNewHydroPh] = useState('7.0');
+      const [newHydroMedia, setNewHydroMedia] = useState(null); // Optional log photo from local storage
+
+      // --- CUSTOM DIALOG ENGINE FOR ALERTS/CONFIRMS ---
+      const [alertConfig, setAlertConfig] = useState({ show: false, title: '', message: '', type: 'info', onConfirm: null });
+
+      const triggerAlert = (title, message, type = 'info', onConfirm = null) => {
+        setAlertConfig({ show: true, title, message, type, onConfirm });
+      };
+
+      const closeAlert = () => {
+        setAlertConfig({ show: false, title: '', message: '', type: 'info', onConfirm: null });
+      };
+
+      // --- AUDIT SYSTEM LOGGING GENERATOR ---
+      const pushSystemLog = (category, message) => {
+        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        setSystemLogs(prev => [
+          { id: Date.now(), timestamp, category, message },
+          ...prev
+        ]);
+      };
+
+      useEffect(() => {
+        if (darkMode) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }, [darkMode]);
+
+      useEffect(() => {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('opacity-100', 'translate-y-0');
+                entry.target.classList.remove('opacity-0', 'translate-y-10');
+              }
+            });
+          },
+          { threshold: 0.1 }
+        );
+
+        const elements = document.querySelectorAll('.animate-on-scroll');
+        elements.forEach((el) => observer.observe(el));
+        return () => elements.forEach((el) => observer.unobserve(el));
+      }, [currentTab, feed, minerals, hydroLogs, siteLogo, siteTitle]);
+
+      const formatPrice = (usdValue) => {
+        if (currency === 'USD') return `$${usdValue.toLocaleString()}`;
+        return `MWK ${(usdValue * usdToMwkRate).toLocaleString()}`;
+      };
+
+      // --- ADMIN AUTHENTICATION ---
+      const handleAdminVerify = (e) => {
+        e.preventDefault();
+        if (adminKeyInput === 'ignatius2026') {
+          setIsAdmin(true);
+          setAdminKeyError('');
+          pushSystemLog("Auth", "Administrative privileges validated with terminal token.");
+          triggerAlert("Access Granted", "Welcome to Kamwanje admin management console.", "success");
+        } else {
+          setAdminKeyError('Invalid Access Key. Please try again.');
+          pushSystemLog("Security", "Failed administration login trial attempt.");
+        }
+      };
+
+      // --- ACTIONS: LOGO CONTENT ENGINE ---
+      const handleLogoUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const localUrl = URL.createObjectURL(file);
+          setSiteLogo(localUrl);
+          pushSystemLog("Config", "Dynamic corporate logo replaced with local file reference.");
+        }
+      };
+
+      const handleCreatePost = (e) => {
+        e.preventDefault();
+        if (!newPostText && !newPostMedia) return;
+
+        // Determine user identity
+        const authorName = isAdmin ? "Admin (KAMWANJE)" : (isLoggedIn ? profile.name : "Guest Explorer");
+        const authorAvatar = isAdmin ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" : profile.avatar;
+
+        const post = {
+          id: Date.now(),
+          author: authorName,
+          avatar: authorAvatar,
+          story: newPostText,
+          media: newPostMedia || null,
+          mediaType: newPostMediaType,
+          timestamp: "Just now",
+          likes: 0,
+          reactions: { like: 0, love: 0, fire: 0, diamond: 0 },
+          userReaction: null,
+          comments: []
+        };
+
+        setFeed([post, ...feed]);
+        pushSystemLog("Publish", `New broadcast entry registered (ID: ${post.id}) by ${authorName}.`);
+        setNewPostText('');
+        setNewPostMedia('');
+        setIsCreateModalOpen(false);
+      };
+
+      const handleFeedMediaUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const localUrl = URL.createObjectURL(file);
+          setNewPostMedia(localUrl);
+          setNewPostMediaType(file.type.startsWith('video/') ? 'video' : 'image');
+          pushSystemLog("Media", `Home broadcast creator appended local file asset: ${file.name}`);
+        }
+      };
+
+      const startEditingPost = (post) => {
+        setEditingPostId(post.id);
+        setEditingPostText(post.story);
+      };
+
+      const saveEditedPost = (postId) => {
+        setFeed(feed.map(p => p.id === postId ? { ...p, story: editingPostText } : p));
+        pushSystemLog("Publish", `Modified post payload: ${postId}`);
+        setEditingPostId(null);
+      };
+
+      const handleDeletePost = (postId) => {
+        triggerAlert("Confirm Delete", "Are you sure you want to permanently delete this broadcast post?", "confirm", () => {
+          setFeed(feed.filter(p => p.id !== postId));
+          pushSystemLog("Publish", `Erased home broadcast stream coordinate: ${postId}`);
+        });
+      };
+
+      const handleReaction = (postId, reactionType) => {
+        setFeed(feed.map(post => {
+          if (post.id === postId) {
+            const updatedReactions = { ...post.reactions };
+            let updatedUserReaction = reactionType;
+            
+            if (post.userReaction === reactionType) {
+              updatedReactions[reactionType] = Math.max(0, updatedReactions[reactionType] - 1);
+              updatedUserReaction = null;
+            } else {
+              if (post.userReaction) {
+                updatedReactions[post.userReaction] = Math.max(0, updatedReactions[post.userReaction] - 1);
+              }
+              updatedReactions[reactionType] = (updatedReactions[reactionType] || 0) + 1;
+            }
+
+            return {
+              ...post,
+              reactions: updatedReactions,
+              userReaction: updatedUserReaction,
+              likes: updatedUserReaction ? post.likes + 1 : Math.max(0, post.likes - 1)
+            };
+          }
+          return post;
+        }));
+        pushSystemLog("UserActivity", `Dispatched reactive feedback state (${reactionType}) on post ID: ${postId}`);
+      };
+
+      const handleAddComment = (postId) => {
+        if (!allowComments) {
+          triggerAlert("Feedback Disabled", "Admin has temporarily suspended commentary features platform-wide.", "warning");
+          return;
+        }
+        const text = commentInputs[postId];
+        if (!text || !text.trim()) return;
+
+        setFeed(feed.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              comments: [...post.comments, {
+                id: Date.now(),
+                user: isLoggedIn ? profile.name : "Anonymous User",
+                avatar: isLoggedIn ? profile.avatar : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
+                text: text,
+                replies: []
+              }]
+            };
+          }
+          return post;
+        }));
+        pushSystemLog("UserActivity", `Dispatched commentary text string to post reference ID: ${postId}`);
+        setCommentInputs({ ...commentInputs, [postId]: '' });
+      };
+
+      const handleAddReply = (postId, commentId) => {
+        if (!allowComments) {
+          triggerAlert("Feedback Disabled", "Admin has temporarily suspended commentary features platform-wide.", "warning");
+          return;
+        }
+        const text = replyInputs[commentId];
+        if (!text || !text.trim()) return;
+
+        setFeed(feed.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              comments: post.comments.map(c => {
+                if (c.id === commentId) {
+                  return {
+                    ...c,
+                    replies: [...c.replies, {
+                      id: Date.now(),
+                      user: isLoggedIn ? profile.name : "Anonymous User",
+                      text: text
+                    }]
+                  };
+                }
+                return c;
+              })
+            };
+          }
+          return post;
+        }));
+        pushSystemLog("UserActivity", `Appended reply trace to parent comment node: ${commentId}`);
+        setReplyInputs({ ...replyInputs, [commentId]: '' });
+        setActiveReplyBox(null);
+      };
+
+      const handleAddMineral = (e) => {
+        e.preventDefault();
+        if (!newMineral.name || !newMineral.priceUSD) return;
+        const item = {
+          id: Date.now(),
+          name: newMineral.name,
+          weight: newMineral.weight || 'N/A',
+          location: newMineral.location || 'Unknown',
+          priceUSD: parseFloat(newMineral.priceUSD),
+          media: newMineral.media || "https://images.unsplash.com/photo-1599707367072-cd6ada2bc375?w=600"
+        };
+        setMinerals([...minerals, item]);
+        pushSystemLog("Inventory", `Registered dynamic mineral specimen catalog trace: ${item.name}`);
+        setNewMineral({ name: '', weight: '', location: '', priceUSD: '', media: '' });
+      };
+
+      const handleMineralMediaUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const localUrl = URL.createObjectURL(file);
+          setNewMineral({ ...newMineral, media: localUrl });
+          pushSystemLog("Media", `Mineral creator appended local asset payload: ${file.name}`);
+        }
+      };
+
+      const startEditingMineral = (mineral) => {
+        setEditingMineralId(mineral.id);
+        setEditingMineralForm({
+          name: mineral.name,
+          weight: mineral.weight,
+          location: mineral.location,
+          priceUSD: mineral.priceUSD,
+          media: mineral.media
+        });
+      };
+
+      const handleEditMineralMediaUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const localUrl = URL.createObjectURL(file);
+          setEditingMineralForm({ ...editingMineralForm, media: localUrl });
+          pushSystemLog("Media", `Modified local file attachment pointer for mineral trace: ${file.name}`);
+        }
+      };
+
+      const saveEditedMineral = (id) => {
+        setMinerals(minerals.map(m => m.id === id ? { ...m, ...editingMineralForm, priceUSD: parseFloat(editingMineralForm.priceUSD) } : m));
+        pushSystemLog("Inventory", `Re-mapped edited catalog characteristics index parameter: ${id}`);
+        setEditingMineralId(null);
+      };
+
+      const handleDeleteMineral = (id) => {
+        triggerAlert("Delete Specimen", "Are you sure you want to remove this mineral from the active catalogue?", "confirm", () => {
+          setMinerals(minerals.filter(m => m.id !== id));
+          pushSystemLog("Inventory", `Wiped product index tracking coordinate reference: ${id}`);
+        });
+      };
+
+      const calculateDarcyFlow = (e) => {
+        e.preventDefault();
+        const k = parseFloat(conductivity);
+        const i = parseFloat(gradient);
+        const a = parseFloat(crossArea);
+        if (!isNaN(k) && !isNaN(i) && !isNaN(a)) {
+          const q = k * i * a;
+          setCalculatedDischarge(q.toFixed(2));
+          pushSystemLog("Geophysics", `Computed Darcy's groundwater coefficient: K=${k}, i=${i}, A=${a}. Result=${q.toFixed(2)} m³/day`);
+        } else {
+          triggerAlert("Input Error", "Please provide valid numerical parameters for geological computation.", "warning");
+        }
+      };
+
+      const handleHydroImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const localUrl = URL.createObjectURL(file);
+          setNewHydroMedia(localUrl);
+          pushSystemLog("Media", `Hydrologics logging system parsed aquifer layout attachment: ${file.name}`);
+        }
+      };
+
+      const handleAddHydroLog = (e) => {
+        e.preventDefault();
+        if (!newHydroLocation || !newHydroDepth) return;
+        
+        const estRate = (parseFloat(conductivity) * parseFloat(gradient) * parseFloat(crossArea)).toFixed(2);
+
+        const newLog = {
+          id: Date.now(),
+          location: newHydroLocation,
+          waterDepth: `${newHydroDepth} meters`,
+          phLevel: parseFloat(newHydroPh),
+          dischargeRate: isNaN(estRate) ? "N/A" : `${estRate} m³/day`,
+          loggedBy: isAdmin ? "Geo Admin (KAMWANJE)" : "Field Node",
+          media: newHydroMedia
+        };
+
+        setHydroLogs([newLog, ...hydroLogs]);
+        pushSystemLog("Telemetry", `Committed new hydraulic telemetry log trace: ${newHydroLocation}`);
+        setNewHydroLocation('');
+        setNewHydroDepth('');
+        setNewHydroMedia(null);
+        triggerAlert("Telemetry Log Added", "Borehole reading logged into dynamic geological system matrix.", "success");
+      };
+
+      const handleSendMessage = (textOverride = null, type = 'text', mediaFileUrl = null) => {
+        const body = textOverride || chatInput;
+        if (!body && !mediaFileUrl) return;
+
+        const newMsg = {
+          id: Date.now(),
+          sender: 'user',
+          text: body,
+          type: type,
+          media: mediaFileUrl || null,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+
+        setChatMessages(prev => [...prev, newMsg]);
+        pushSystemLog("Chat", `User dispatched communication node payload. Type: ${type}`);
+        if (!textOverride) setChatInput('');
+
+        setTimeout(() => {
+          setChatMessages(prev => [...prev, {
+            id: Date.now() + 1,
+            sender: 'admin',
+            text: "Your message and local storage assets have been parsed safely. A representative from the KAMWANJE desk will follow up shortly.",
+            type: 'text',
+            media: null,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }]);
+        }, 1200);
+      };
+
+      const handleChatFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const localUrl = URL.createObjectURL(file);
+          const isImage = file.type.startsWith('image/');
+          handleSendMessage(
+            `Local Asset Attached: ${file.name} (File size: ${(file.size / 1024).toFixed(1)} KB)`,
+            isImage ? 'image' : 'file',
+            localUrl
+          );
+          pushSystemLog("Media", `Chat attachment initialized: ${file.name}`);
+        }
+      };
+
+      const toggleVoiceNote = () => {
+        if (isRecording) {
+          setIsRecording(false);
+          handleSendMessage("Voice Record Transmission (Processed Client-Side Safely)", 'voice');
+          pushSystemLog("Chat", "Voice record dispatch successfully completed.");
+        } else {
+          setIsRecording(true);
+        }
+      };
+
+      const handleLogin = (e) => {
+        e.preventDefault();
+        if (!allowRegistration) {
+          triggerAlert("Sign-Ins Locked", "Admin has locked user registration actions temporarily.", "warning");
+          return;
+        }
+        if (userEmail.trim()) {
+          setIsLoggedIn(true);
+          const namePart = userEmail.split('@')[0];
+          const newProfile = { 
+            ...profile, 
+            email: userEmail, 
+            name: namePart.charAt(0).toUpperCase() + namePart.slice(1) 
+          };
+          setProfile(newProfile);
+          setTempProfile(newProfile);
+          pushSystemLog("UserActivity", `Guest explorer identity session mapped to email node: ${userEmail}`);
+        }
+      };
+
+      const handleProfileGalleryUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const localUrl = URL.createObjectURL(file);
+          setProfile({ ...profile, gallery: [...profile.gallery, localUrl] });
+          pushSystemLog("Media", `Appended local image node inside profile dynamic vault registry: ${file.name}`);
+        }
+      };
+
+      const handleAvatarChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const localUrl = URL.createObjectURL(file);
+          setTempProfile({ ...tempProfile, avatar: localUrl });
+        }
+      };
+
+      const handleSaveBio = (e) => {
+        e.preventDefault();
+        setProfile({ ...tempProfile });
+        setIsBioModalOpen(false);
+        pushSystemLog("UserActivity", `Explorer contact profile bio metrics updated successfully.`);
+        triggerAlert("Profile Updated", "Your explorer contact profile credentials and caption details are now active.", "success");
+      };
+
+      const isTabRestricted = (tabId) => {
+        if (isAdmin) return false;
+        return allowedTabs[tabId] === false;
+      };
+
+      return (
+        <div className={`${darkMode ? 'dark text-slate-100' : 'text-slate-900'} min-h-screen font-sans transition-colors duration-500 bg-slate-50 dark:bg-slate-950 relative overflow-x-hidden pb-24`}>
+          
+          {/* MAINTENANCE MODE SHIELD */}
+          {maintenanceMode && !isAdmin && (
+            <div className="fixed inset-0 z-[110] bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white">
+              <svg className="w-16 h-16 text-amber-500 mb-4 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <h1 className="text-3xl font-black mb-2 bg-gradient-to-r from-amber-500 to-emerald-400 bg-clip-text text-transparent">THE SYSTEM MATRIX IS OPTIMIZING</h1>
+              <p className="max-w-md text-sm text-slate-400 leading-relaxed">THE MINING BLOG265 terminal structure is currently processing core network nodes. Please reload the dashboard trace shortly.</p>
+            </div>
+          )}
+
+          {/* DYNAMIC POST CREATION MODAL (Meta-style Floating Action Triggered) */}
+          {isCreateModalOpen && (
+            <div className="fixed inset-0 z-[105] bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+              <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-5">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                  <h3 className="text-lg font-bold flex items-center text-slate-800 dark:text-slate-100">
+                    <span className="mr-2 text-emerald-500">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                      </svg>
+                    </span>
+                    Create Broadcast Updates
+                  </h3>
+                  <button onClick={() => setIsCreateModalOpen(false)} className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-slate-500">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+
+                <form onSubmit={handleCreatePost} className="space-y-4">
+                  <div>
+                    <textarea
+                      placeholder="Share a dynamic geology update, project milestone, or blog entry..."
+                      value={newPostText}
+                      onChange={(e) => setNewPostText(e.target.value)}
+                      className="w-full p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-2 focus:ring-amber-500 text-sm outline-none resize-none"
+                      rows="4"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col space-y-1.5">
+                      <label className="text-xs font-bold text-slate-400">Attach Media (Local Device)</label>
+                      <input
+                        type="file"
+                        accept="image/*,video/*"
+                        onChange={handleFeedMediaUpload}
+                        className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-amber-500/10 file:text-amber-500 focus:outline-none"
+                      />
+                    </div>
+                    
+                    <div className="flex flex-col space-y-1.5">
+                      <label className="text-xs font-bold text-slate-400">Fallback Media (URL Link)</label>
+                      <input
+                        type="text"
+                        placeholder="Fallback image or video URL link"
+                        value={newPostMedia}
+                        onChange={(e) => setNewPostMedia(e.target.value)}
+                        className="p-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex space-x-2 pt-2">
+                    <button type="submit" className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-emerald-600 text-white font-bold rounded-2xl shadow-lg transition-transform active:scale-[0.98]">
+                      Publish Update Stream
+                    </button>
+                    <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-5 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-2xl">
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* META-STYLE EDIT PROFILE BIO MODAL */}
+          {isBioModalOpen && (
+            <div className="fixed inset-0 z-[105] bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+              <div className="w-full max-w-md rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-5">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">Edit Profile & Bio Card</h3>
+                  <button onClick={() => setIsBioModalOpen(false)} className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-slate-500">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveBio} className="space-y-4 text-xs">
+                  <div className="flex flex-col items-center space-y-2 pb-2">
+                    <img src={tempProfile.avatar} alt="Temporary Avatar" className="w-16 h-16 rounded-full object-cover border-2 border-amber-500 shadow" />
+                    <label className="cursor-pointer text-[11px] font-bold text-amber-500 hover:underline">
+                      Upload Profile Image
+                      <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+                    </label>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Explorer Public Display Name</label>
+                      <input 
+                        type="text" 
+                        required 
+                        value={tempProfile.name} 
+                        onChange={(e) => setTempProfile({ ...tempProfile, name: e.target.value })} 
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-amber-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Public Caption & Bio</label>
+                      <textarea 
+                        rows="3"
+                        placeholder="Describe your mining activities, geology interests, or academic focus..."
+                        value={tempProfile.bio} 
+                        onChange={(e) => setTempProfile({ ...tempProfile, bio: e.target.value })} 
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-amber-500 resize-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Contact Phone Number</label>
+                      <input 
+                        type="text" 
+                        value={tempProfile.phone} 
+                        onChange={(e) => setTempProfile({ ...tempProfile, phone: e.target.value })} 
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-amber-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">External Link / Website URL</label>
+                      <input 
+                        type="url" 
+                        value={tempProfile.link} 
+                        onChange={(e) => setTempProfile({ ...tempProfile, link: e.target.value })} 
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-amber-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex space-x-2 pt-2">
+                    <button type="submit" className="flex-1 py-2.5 bg-amber-500 text-white font-bold rounded-xl shadow transition-transform active:scale-[0.98]">
+                      Save Bio Changes
+                    </button>
+                    <button type="button" onClick={() => setIsBioModalOpen(false)} className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl">
+                      Close
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* CUSTOM ALERTS PORTAL */}
+          {alertConfig.show && (
+            <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+              <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl text-center space-y-4">
+                <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center text-xl bg-amber-500/10 text-amber-500">
+                  {alertConfig.type === 'confirm' ? (
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  ) : alertConfig.type === 'success' ? (
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+                  ) : (
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                  )}
+                </div>
+                <h3 className="text-lg font-black tracking-tight">{alertConfig.title}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{alertConfig.message}</p>
+                
+                <div className="flex space-x-2 pt-2">
+                  {alertConfig.type === 'confirm' ? (
+                    <React.Fragment>
+                      <button 
+                        onClick={() => { alertConfig.onConfirm?.(); closeAlert(); }}
+                        className="flex-1 py-2 text-xs font-bold text-white bg-red-600 rounded-xl"
+                      >
+                        Yes, Execute
+                      </button>
+                      <button 
+                        onClick={closeAlert}
+                        className="flex-1 py-2 text-xs font-bold bg-slate-200 dark:bg-slate-800 rounded-xl"
+                      >
+                        Cancel
+                      </button>
+                    </React.Fragment>
+                  ) : (
+                    <button 
+                      onClick={closeAlert}
+                      className="w-full py-2 text-xs font-bold bg-amber-500 text-white rounded-xl"
+                    >
+                      Continue
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* META-STYLE DYNAMIC FLOATING ACTION "+" BUTTON */}
+          <button 
+            onClick={() => setIsCreateModalOpen(true)} 
+            className="fixed bottom-24 right-6 z-50 w-14 h-14 bg-gradient-to-tr from-amber-500 to-emerald-600 hover:from-amber-600 hover:to-emerald-700 text-white rounded-full shadow-2xl flex items-center justify-center transform active:scale-95 transition-all focus:outline-none"
+            title="Create Post Update"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+          </button>
+
+          {/* TOP GLASS HEADER */}
+          <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/60 dark:bg-slate-900/60 border-b border-white/20 dark:border-slate-800/40 shadow-sm transition-all duration-300">
+            <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
+              
+              <div className="flex items-center space-x-3">
+                {/* Dynamic Logo Node */}
+                {siteLogo ? (
+                  <img src={siteLogo} alt="Custom Logo" className="h-12 w-12 rounded-xl object-cover shadow-lg border border-white/40" />
+                ) : (
+                  <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-amber-500 via-amber-600 to-emerald-600 flex items-center justify-center shadow-lg transform rotate-3">
+                    <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                    </svg>
+                  </div>
+                )}
+                <div>
+                  <h1 className="text-lg md:text-xl font-black tracking-tight bg-gradient-to-r from-amber-500 via-emerald-500 to-emerald-600 bg-clip-text text-transparent uppercase">
+                    {siteTitle}
+                  </h1>
+                  <p className="text-[10px] uppercase tracking-widest opacity-60 font-bold">Premium Geological Framework</p>
+                </div>
+              </div>
+
+              {/* QUICK CONTROLS */}
+              <div className="flex items-center space-x-4">
+                <button 
+                  onClick={() => setCurrency(currency === 'MWK' ? 'USD' : 'MWK')}
+                  className="px-3 py-1.5 rounded-full text-xs font-bold transition-all backdrop-blur-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 hover:scale-105"
+                >
+                  Currency: {currency}
+                </button>
+
+                <button 
+                  onClick={() => setDarkMode(!darkMode)}
+                  className="p-2.5 rounded-xl backdrop-blur-md bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-slate-700 dark:text-slate-300 transition-all hover:scale-110"
+                >
+                  {darkMode ? 'Light' : 'Dark'}
+                </button>
+              </div>
+            </div>
+
+            {/* TABS NAVIGATION BAR (Clean typography, no emojis) */}
+            <nav className="max-w-3xl mx-auto px-4 pb-2">
+              <div className="flex p-1.5 space-x-1 bg-black/5 dark:bg-white/5 backdrop-blur-md rounded-xl border border-black/5 dark:border-white/5 overflow-x-auto whitespace-nowrap">
+                {[
+                  { 
+                    id: 'home', 
+                    label: 'Home Feed',
+                    icon: (
+                      <svg className="w-4 h-4 mr-1.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                      </svg>
+                    )
+                  },
+                  { 
+                    id: 'minerals', 
+                    label: 'Minerals',
+                    icon: (
+                      <svg className="w-4 h-4 mr-1.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                      </svg>
+                    )
+                  },
+                  { 
+                    id: 'hydrologics', 
+                    label: 'Hydrologics',
+                    icon: (
+                      <svg className="w-4 h-4 mr-1.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.5c4.14 0 7.5-3.36 7.5-7.5C19.5 9.5 12 3 12 3S4.5 9.5 4.5 14c0 4.14 3.36 7.5 7.5 7.5z"/>
+                      </svg>
+                    )
+                  },
+                  { 
+                    id: 'chat', 
+                    label: 'Live Chat',
+                    icon: (
+                      <svg className="w-4 h-4 mr-1.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                      </svg>
+                    )
+                  },
+                  { 
+                    id: 'profile', 
+                    label: 'Explorer Bio',
+                    icon: (
+                      <svg className="w-4 h-4 mr-1.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                      </svg>
+                    )
+                  },
+                  { 
+                    id: 'settings', 
+                    label: 'Settings',
+                    icon: (
+                      <svg className="w-4 h-4 mr-1.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      </svg>
+                    )
+                  }
+                ].map((tab) => {
+                  const isRestricted = isTabRestricted(tab.id);
+                  if (isRestricted && !isAdmin) return null;
+
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setCurrentTab(tab.id)}
+                      className={`flex items-center text-center py-2 px-3.5 text-xs md:text-sm font-semibold rounded-lg transition-all duration-300 ${
+                        currentTab === tab.id 
+                          ? 'bg-white dark:bg-slate-800 text-amber-500 dark:text-amber-400 shadow-md transform scale-[1.02]' 
+                          : 'text-slate-600 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-slate-800/40'
+                      }`}
+                    >
+                      {tab.icon}
+                      <span>{tab.label}</span>
+                      {isRestricted && isAdmin && (
+                        <span className="ml-1.5 text-[8px] bg-red-500/20 text-red-400 px-1 rounded">Offline</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </nav>
+          </header>
+
+          {/* CORE DISPLAY ROUTER MAP */}
+          <main className="max-w-6xl mx-auto px-4 py-8 pb-32 transition-all duration-500">
+            
+            {isTabRestricted(currentTab) ? (
+              <div className="glass-ios p-8 rounded-3xl text-center space-y-4 max-w-md mx-auto my-12 animate-fadeIn">
+                <svg className="w-12 h-12 text-amber-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <h3 className="text-lg font-black">Node Temporarily Offline</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  The administrator has temporarily suspended the {currentTab.toUpperCase()} operations module. Please consult with the central office terminal.
+                </p>
+                <button 
+                  onClick={() => setCurrentTab('home')}
+                  className="px-4 py-2 bg-amber-500 text-white font-bold rounded-xl text-xs"
+                >
+                  Return to Home Feed
+                </button>
+              </div>
+            ) : (
+              <React.Fragment>
+                
+                {/* ================= HOME TAB WITH SIDEBAR INVENTORY MANAGEMENT ================= */}
+                {currentTab === 'home' && (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    
+                    {/* Left & Middle Column: Main Social Broadcaster Feed */}
+                    <div className="lg:col-span-2 space-y-6">
+                      
+                      {/* Short Trigger Card to prompt create Modal */}
+                      <div className="glass-ios p-5 rounded-3xl shadow flex items-center justify-between border border-black/5">
+                        <div className="flex items-center space-x-3">
+                          <img src={isLoggedIn ? profile.avatar : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"} className="w-10 h-10 rounded-full object-cover border" />
+                          <span className="text-xs text-slate-400 font-semibold italic">Share something new with the network...</span>
+                        </div>
+                        <button 
+                          onClick={() => setIsCreateModalOpen(true)}
+                          className="px-4 py-2 bg-gradient-to-tr from-amber-500 to-emerald-600 text-white font-bold text-xs rounded-xl shadow-md transition-transform active:scale-[0.97]"
+                        >
+                          Write Update
+                        </button>
+                      </div>
+
+                      {/* Feed stream mapping */}
+                      {feed.map((post) => (
+                        <article key={post.id} className="animate-on-scroll glass-ios p-5 rounded-3xl shadow-xl relative">
+                          
+                          {/* Inline Admin Post Modification HUD */}
+                          {isAdmin && (
+                            <div className="absolute top-4 right-4 flex space-x-2 z-10">
+                              <button 
+                                onClick={() => startEditingPost(post)} 
+                                className="px-2.5 py-1 bg-amber-500/20 text-amber-500 text-[10px] font-bold rounded-lg border border-amber-500/30"
+                              >
+                                Edit
+                              </button>
+                              <button 
+                                onClick={() => handleDeletePost(post.id)} 
+                                className="px-2.5 py-1 bg-red-500/20 text-red-500 text-[10px] font-bold rounded-lg border border-red-500/30"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+
+                          <div className="flex items-center space-x-3 mb-4">
+                            <img src={post.avatar} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-amber-500 object-cover" />
+                            <div>
+                              <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200">{post.author}</h4>
+                              <span className="text-[11px] text-slate-500">{post.timestamp}</span>
+                            </div>
+                          </div>
+
+                          {editingPostId === post.id ? (
+                            <div className="space-y-3 my-3 p-3 bg-black/10 dark:bg-white/5 border border-black/5 rounded-2xl animate-fadeIn">
+                              <textarea
+                                value={editingPostText}
+                                onChange={(e) => setEditingPostText(e.target.value)}
+                                className="w-full p-2 text-xs bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded text-slate-900 dark:text-slate-100 outline-none"
+                                rows="3"
+                              />
+                              <div className="flex space-x-2">
+                                <button onClick={() => saveEditedPost(post.id)} className="px-3 py-1 bg-emerald-600 text-white text-xs font-bold rounded">Save Changes</button>
+                                <button onClick={() => setEditingPostId(null)} className="px-3 py-1 bg-slate-500 text-white text-xs font-bold rounded">Cancel</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300 mb-4 whitespace-pre-wrap">{post.story}</p>
+                          )}
+
+                          {post.media && (
+                            <div className="rounded-2xl overflow-hidden border border-black/5 dark:border-white/5 mb-4 max-h-96 bg-black/20 flex items-center justify-center">
+                              {post.mediaType === 'video' ? (
+                                <video src={post.media} controls className="w-full h-full object-cover" />
+                              ) : (
+                                <img src={post.media} alt="Attached asset" className="w-full h-full object-cover" />
+                              )}
+                            </div>
+                          )}
+
+                          {/* Reactions */}
+                          <div className="flex flex-wrap items-center gap-2 border-y border-black/5 dark:border-white/5 py-3 my-3">
+                            {[
+                              { type: 'like', text: 'Like' },
+                              { type: 'love', text: 'Love' },
+                              { type: 'fire', text: 'Hot' },
+                              { type: 'diamond', text: 'Diamond' }
+                            ].map((rx) => (
+                              <button
+                                key={rx.type}
+                                onClick={() => handleReaction(post.id, rx.type)}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+                                  post.userReaction === rx.type 
+                                    ? 'bg-amber-500/20 text-amber-500 border border-amber-500/40' 
+                                    : 'bg-black/5 dark:bg-white/5 text-slate-600 dark:text-slate-400'
+                                }`}
+                              >
+                                <span>{rx.text}</span>
+                                <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.2 rounded font-bold text-[10px]">
+                                  {post.reactions[rx.type] || 0}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Comments Module */}
+                          <div className="mt-4 space-y-3">
+                            <div className="space-y-3 max-h-60 overflow-y-auto">
+                              {post.comments.map((comment) => (
+                                <div key={comment.id} className="bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-black/5">
+                                  <div className="flex items-center space-x-2 mb-1">
+                                    <img src={comment.avatar} alt="Commenter" className="w-5 h-5 rounded-full object-cover" />
+                                    <span className="font-bold text-xs text-amber-600 dark:text-amber-400">{comment.user}</span>
+                                  </div>
+                                  <p className="text-xs text-slate-700 dark:text-slate-300">{comment.text}</p>
+                                  
+                                  {comment.replies?.map((reply) => (
+                                    <div key={reply.id} className="ml-4 mt-2 bg-amber-500/5 border-l-2 border-amber-500 pl-2 py-1">
+                                      <span className="font-bold text-[11px] text-emerald-600 dark:text-emerald-400">{reply.user}:</span>
+                                      <p className="text-[11px] text-slate-600 dark:text-slate-400">{reply.text}</p>
+                                    </div>
+                                  ))}
+
+                                  <button 
+                                    onClick={() => setActiveReplyBox(activeReplyBox === comment.id ? null : comment.id)}
+                                    className="text-[10px] text-slate-400 hover:underline mt-1 block"
+                                  >
+                                    Reply
+                                  </button>
+                                  
+                                  {activeReplyBox === comment.id && (
+                                    <div className="flex items-center space-x-2 mt-1.5 animate-fadeIn">
+                                      <input
+                                        type="text"
+                                        placeholder="Write a reply..."
+                                        value={replyInputs[comment.id] || ''}
+                                        onChange={(e) => setReplyInputs({...replyInputs, [comment.id]: e.target.value})}
+                                        className="flex-1 px-2.5 py-1 text-xs bg-white dark:bg-slate-950 rounded-lg border border-slate-200 dark:border-slate-800"
+                                      />
+                                      <button 
+                                        onClick={() => handleAddReply(post.id, comment.id)}
+                                        className="px-3 py-1 bg-emerald-600 text-white text-[11px] font-bold rounded-lg"
+                                      >
+                                        Send
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className="flex items-center space-x-2 pt-2">
+                              <input
+                                type="text"
+                                placeholder="Write your input comment..."
+                                value={commentInputs[post.id] || ''}
+                                onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
+                                className="flex-1 px-4 py-2 text-xs bg-white/40 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 rounded-xl outline-none"
+                              />
+                              <button onClick={() => handleAddComment(post.id)} className="px-4 py-2 bg-amber-500 text-white text-xs font-bold rounded-xl hover:bg-amber-600 active:scale-95 transition-all">
+                                Post
+                              </button>
+                            </div>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+
+                    {/* Right Column: Home Feed Live Minerals Inventory Panel */}
+                    <div className="space-y-6">
+                      <div className="glass-ios p-5 rounded-3xl shadow-xl">
+                        <div className="mb-4">
+                          <h3 className="text-base font-extrabold text-amber-500">Live Inventory Widget</h3>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400">Directly control active minerals from this home widget node.</p>
+                        </div>
+
+                        <div className="space-y-4">
+                          {minerals.map((mineral) => (
+                            <div key={mineral.id} className="p-4 bg-white/60 dark:bg-slate-900/80 rounded-2xl border border-black/5 dark:border-white/5 space-y-3 relative group">
+                              
+                              {/* Live Edit and Delete buttons for Inventory in the Home Feed */}
+                              {isAdmin && (
+                                <div className="absolute top-2 right-2 flex space-x-1.5 z-10 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    onClick={() => startEditingMineral(mineral)}
+                                    className="p-1.5 bg-amber-500/20 text-amber-500 text-[10px] rounded-lg border border-amber-500/30"
+                                    title="Edit Specimen Specifications"
+                                  >
+                                    Adjust
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteMineral(mineral.id)}
+                                    className="p-1.5 bg-red-500/20 text-red-500 text-[10px] rounded-lg border border-red-500/30"
+                                    title="Delete Specimen"
+                                  >
+                                    Drop
+                                  </button>
+                                </div>
+                              )}
+
+                              {editingMineralId === mineral.id ? (
+                                <div className="space-y-2.5 pt-4 animate-fadeIn">
+                                  <input 
+                                    type="text" 
+                                    value={editingMineralForm.name} 
+                                    onChange={(e) => setEditingMineralForm({...editingMineralForm, name: e.target.value})} 
+                                    className="w-full p-2 text-xs bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg outline-none" 
+                                    placeholder="Mineral Name"
+                                  />
+                                  <input 
+                                    type="text" 
+                                    value={editingMineralForm.weight} 
+                                    onChange={(e) => setEditingMineralForm({...editingMineralForm, weight: e.target.value})} 
+                                    className="w-full p-2 text-xs bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg outline-none" 
+                                    placeholder="Weight"
+                                  />
+                                  <input 
+                                    type="text" 
+                                    value={editingMineralForm.location} 
+                                    onChange={(e) => setEditingMineralForm({...editingMineralForm, location: e.target.value})} 
+                                    className="w-full p-2 text-xs bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg outline-none" 
+                                    placeholder="Location"
+                                  />
+                                  <input 
+                                    type="number" 
+                                    value={editingMineralForm.priceUSD} 
+                                    onChange={(e) => setEditingMineralForm({...editingMineralForm, priceUSD: e.target.value})} 
+                                    className="w-full p-2 text-xs bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg outline-none" 
+                                    placeholder="Price Base (USD)"
+                                  />
+                                  
+                                  <div className="flex flex-col space-y-1">
+                                    <label className="text-[10px] text-slate-400 font-bold uppercase">Change Image (Local file)</label>
+                                    <input 
+                                      type="file" 
+                                      accept="image/*" 
+                                      onChange={handleEditMineralMediaUpload} 
+                                      className="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-amber-500/10 file:text-amber-500" 
+                                    />
+                                  </div>
+
+                                  <div className="flex space-x-2 pt-1">
+                                    <button onClick={() => saveEditedMineral(mineral.id)} className="flex-1 py-1 bg-emerald-600 text-white font-bold rounded-lg text-xs">Save</button>
+                                    <button onClick={() => setEditingMineralId(null)} className="flex-1 py-1 bg-slate-500 text-white font-bold rounded-lg text-xs">Cancel</button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <React.Fragment>
+                                  <div className="h-24 w-full rounded-xl overflow-hidden bg-slate-800">
+                                    <img src={mineral.media} alt={mineral.name} className="w-full h-full object-cover" />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <h4 className="font-bold text-xs text-slate-800 dark:text-slate-200">{mineral.name}</h4>
+                                    <div className="flex justify-between text-[10px] text-slate-500">
+                                      <span>Weight: <b>{mineral.weight}</b></span>
+                                      <span>Site: <b>{mineral.location}</b></span>
+                                    </div>
+                                    <div className="text-[11px] font-black text-emerald-500 dark:text-emerald-400">
+                                      {formatPrice(mineral.priceUSD)}
+                                    </div>
+                                  </div>
+                                </React.Fragment>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                      </div>
+                    </div>
+
+                  </div>
+                )}
+
+                {/* ================= MINERALS SHOWCASE TAB ================= */}
+                {currentTab === 'minerals' && (
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center glass-ios p-4 rounded-2xl">
+                      <div>
+                        <h2 className="text-xl font-extrabold tracking-tight">Geological Inventory Logs</h2>
+                        <p className="text-xs text-slate-500">Live catalog and international currency valuation parameters.</p>
+                      </div>
+                      <span className="text-xs font-semibold text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                        1 USD = {usdToMwkRate} MWK
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {minerals.map((mineral) => (
+                        <div key={mineral.id} className="animate-on-scroll glass-ios rounded-3xl overflow-hidden shadow-lg flex flex-col justify-between">
+                          <div className="relative h-48 bg-slate-800 overflow-hidden">
+                            <img src={mineral.media} alt={mineral.name} className="w-full h-full object-cover" />
+                            <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-amber-400 border border-white/10">
+                              {formatPrice(mineral.priceUSD)}
+                            </div>
+                          </div>
+
+                          <div className="p-5 flex-1 flex flex-col justify-between">
+                            <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
+                              <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-2">{mineral.name}</h3>
+                              <div className="flex justify-between border-b border-black/5 dark:border-white/5 pb-1">
+                                <span>Weight:</span>
+                                <span className="font-semibold text-slate-800 dark:text-slate-200">{mineral.weight}</span>
+                              </div>
+                              <div className="flex justify-between border-b border-black/5 dark:border-white/5 pb-1">
+                                <span>Location found:</span>
+                                <span className="font-semibold text-slate-800 dark:text-slate-200">{mineral.location}</span>
+                              </div>
+                            </div>
+
+                            <div className="mt-4 pt-3 flex items-center justify-between border-t border-black/5 dark:border-white/5">
+                              <button 
+                                onClick={() => {
+                                  setCurrentTab('chat');
+                                  setChatInput(`Inquiry regarding Specimen Log Ref #${mineral.id}: ${mineral.name}`);
+                                }}
+                                className="flex-1 text-center py-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold rounded-xl text-xs hover:bg-amber-500/20 transition-all"
+                              >
+                                Negotiate Purchase
+                              </button>
+                              {isAdmin && (
+                                <button onClick={() => handleDeleteMineral(mineral.id)} className="ml-2 p-2 bg-red-500/10 text-red-500 rounded-xl text-xs hover:bg-red-500/20 active:scale-95 transition-all">
+                                  Drop
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ================= HYDROLOGICS TAB ================= */}
+                {currentTab === 'hydrologics' && (
+                  <div className="space-y-6 animate-fadeIn">
+                    <div className="bg-gradient-to-r from-emerald-500/20 to-blue-500/10 backdrop-blur-xl border border-emerald-500/20 p-5 rounded-3xl">
+                      <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center">
+                        <span className="mr-2">
+                          <svg className="w-5 h-5 inline-block text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 21.5c4.14 0 7.5-3.36 7.5-7.5C19.5 9.5 12 3 12 3S4.5 9.5 4.5 14c0 4.14 3.36 7.5 7.5 7.5z"/></svg>
+                        </span> 
+                        Hydrological Assessment Suite
+                      </h2>
+                      <p className="text-xs text-slate-500 mt-1">Aquifer evaluation parameters and structural borehole logging registries for Malawian basins.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Darcy Equation Calculator */}
+                      <div className="glass-ios p-5 rounded-3xl shadow-lg space-y-4">
+                        <div>
+                          <h3 className="text-xs font-bold text-amber-500 uppercase tracking-widest">Darcy's Flow Model</h3>
+                          <p className="text-[11px] text-slate-400 mt-0.5">Discharge velocity calculator: Q = K * i * A</p>
+                        </div>
+
+                        <form onSubmit={calculateDarcyFlow} className="space-y-3 text-xs">
+                          <div>
+                            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Hydraulic Conductivity - K (m/day)</label>
+                            <input type="number" step="any" value={conductivity} onChange={(e) => setConductivity(e.target.value)} className="w-full p-2 bg-white/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-amber-500" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Hydraulic Gradient - i (dh/dl)</label>
+                            <input type="number" step="any" value={gradient} onChange={(e) => setGradient(e.target.value)} className="w-full p-2 bg-white/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-amber-500" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Aquifer Area - A (m²)</label>
+                            <input type="number" step="any" value={crossArea} onChange={(e) => setCrossArea(e.target.value)} className="w-full p-2 bg-white/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-amber-500" />
+                          </div>
+                          <button type="submit" className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl shadow-md transition-all">Simulate Aquifer Discharge</button>
+                        </form>
+
+                        {calculatedDischarge !== null && (
+                          <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center animate-fadeIn">
+                            <span className="text-[10px] uppercase text-slate-400 tracking-wider block font-bold">Discharge Rate (Q)</span>
+                            <span className="text-xl font-black text-emerald-400">{calculatedDischarge} m³/day</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Borehole Log Entry Registry Form */}
+                      <div className="glass-ios p-5 rounded-3xl shadow-lg flex flex-col justify-between">
+                        <form onSubmit={handleAddHydroLog} className="space-y-3 text-xs">
+                          <h3 className="text-xs font-bold text-emerald-500 uppercase tracking-widest">Field Borehole Dynamic Registry</h3>
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Catchment Basin Location</label>
+                            <input type="text" required placeholder="e.g. Shire Basin Block" value={newHydroLocation} onChange={(e) => setNewHydroLocation(e.target.value)} className="w-full p-2 bg-white/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Static Table Depth (meters)</label>
+                            <input type="number" required placeholder="e.g. 54.8" value={newHydroDepth} onChange={(e) => setNewHydroDepth(e.target.value)} className="w-full p-2 bg-white/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Measured pH Quotient: {newHydroPh}</label>
+                            <input type="range" min="0" max="14" step="0.1" value={newHydroPh} onChange={(e) => setNewHydroPh(e.target.value)} className="w-full accent-emerald-500" />
+                          </div>
+                          
+                          <div className="flex flex-col space-y-1">
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase">Attach Field layout diagram (Local Storage)</label>
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              onChange={handleHydroImageUpload} 
+                              className="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:bg-emerald-500/10 file:text-emerald-500" 
+                            />
+                          </div>
+
+                          <button type="submit" className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-all">Register Field Log</button>
+                        </form>
+                      </div>
+                    </div>
+
+                    {/* Hydrologic Telemetry Table */}
+                    <div className="glass-ios p-5 rounded-3xl shadow">
+                      <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-3">Active Basin Telemetry Database</h3>
+                      <div className="overflow-x-auto text-xs">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-200 dark:border-slate-800 opacity-60">
+                              <th className="pb-2">Catchment Zone</th>
+                              <th className="pb-2">Table Depth</th>
+                              <th className="pb-2">pH Quotient</th>
+                              <th className="pb-2">Est Darcy Flow</th>
+                              <th className="pb-2 text-right">Signed Log Node</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 dark:divide-slate-900">
+                            {hydroLogs.map(l => (
+                              <tr key={l.id} className="hover:bg-slate-100/40 dark:hover:bg-slate-900/40 transition-colors">
+                                <td className="py-2.5 font-bold text-slate-800 dark:text-slate-100">{l.location}</td>
+                                <td className="py-2.5">{l.waterDepth}</td>
+                                <td className="py-2.5 font-bold text-emerald-500">{l.phLevel}</td>
+                                <td className="py-2.5 text-blue-400">{l.dischargeRate}</td>
+                                <td className="py-2.5 text-right opacity-60 italic">{l.loggedBy}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ================= Live CONSULTANCY CHAT TAB ================= */}
+                {currentTab === 'chat' && (
+                  <div className="animate-on-scroll max-w-2xl mx-auto glass-ios rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[520px]">
+                    <div className="p-4 bg-white/40 dark:bg-slate-900/40 border-b border-white/10 dark:border-slate-800/40 flex items-center justify-between">
+                      <div className="flex items-center space-x-2.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <h3 className="text-sm font-bold">Secure Consultation Stream</h3>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 p-4 overflow-y-auto space-y-3.5 scrollbar-thin">
+                      {chatMessages.map((msg) => {
+                        const isUser = msg.sender === 'user';
+                        return (
+                          <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-fadeIn`}>
+                            <div className={`max-w-[80%] p-3.5 rounded-2xl text-xs space-y-2 ${
+                              isUser ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-tr-none' : 'bg-white/70 dark:bg-slate-950/70 text-slate-800 dark:text-slate-200 rounded-tl-none border border-black/5 dark:border-white/10'
+                            }`}>
+                              <div>{msg.text}</div>
+                              {msg.media && (
+                                <div className="rounded-xl overflow-hidden border border-black/10 dark:border-white/10 max-h-48 mt-1 bg-black/10">
+                                  {msg.type === 'image' ? (
+                                    <img src={msg.media} alt="Uploaded attachment preview" className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="p-2 text-center text-xs underline font-bold text-slate-500 dark:text-slate-300">
+                                      Document Reference Ready
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              <div className="text-[9px] mt-1 text-right opacity-60">{msg.timestamp}</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="p-4 bg-white/40 dark:bg-slate-900/40 border-t border-white/10 dark:border-slate-800/40 space-y-2">
+                      <div className="flex items-center space-x-3 text-xs">
+                        <label className="cursor-pointer flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-black/5 dark:bg-white/5 text-slate-600 dark:text-slate-400">
+                          <span>Attach Local File / Image</span>
+                          <input type="file" onChange={handleChatFileUpload} className="hidden" />
+                        </label>
+                        <button 
+                          onClick={toggleVoiceNote}
+                          className={`px-2.5 py-1 rounded-lg text-xs ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-black/5 dark:bg-white/5'}`}
+                        >
+                          {isRecording ? 'Tap to Send Rec' : 'Record Voice Note'}
+                        </button>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          placeholder="Type parameters..."
+                          value={chatInput}
+                          onChange={(e) => setChatInput(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                          className="flex-1 px-4 py-2 bg-white/60 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none"
+                        />
+                        <button onClick={() => handleSendMessage()} className="p-2.5 bg-amber-500 text-white rounded-xl text-xs">➔</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ================= PROFILE TAB (Meta-style Bio Sheet Redesign) ================= */}
+                {currentTab === 'profile' && (
+                  <div className="max-w-2xl mx-auto space-y-6">
+                    {!isLoggedIn ? (
+                      <div className="animate-on-scroll glass-ios p-6 rounded-3xl max-w-md mx-auto shadow-xl">
+                        <h3 className="text-base font-bold text-center mb-4">Initialize Explorer Session</h3>
+                        <form onSubmit={handleLogin} className="space-y-4">
+                          <input
+                            type="email"
+                            required
+                            placeholder="Enter email address"
+                            value={userEmail}
+                            onChange={(e) => setUserEmail(e.target.value)}
+                            className="w-full p-2.5 bg-white/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none"
+                          />
+                          <button type="submit" className="w-full py-2 bg-amber-500 text-white font-bold rounded-xl text-xs transition-transform active:scale-[0.98]">
+                            Login Securely
+                          </button>
+                        </form>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {/* Meta-style Profile Header Card */}
+                        <div className="animate-on-scroll glass-ios p-8 rounded-3xl shadow-xl border border-black/5 relative overflow-hidden">
+                          <div className="flex flex-col md:flex-row items-center md:items-start md:space-x-8 space-y-4 md:space-y-0">
+                            
+                            {/* Profile Image with high-fidelity ring */}
+                            <div className="relative group">
+                              <img src={profile.avatar} alt="Avatar" className="w-24 h-24 rounded-full object-cover border-4 border-amber-500/30 shadow-md group-hover:scale-105 transition-transform" />
+                            </div>
+
+                            {/* Bio contents mapped in grid layout */}
+                            <div className="flex-1 space-y-4 text-center md:text-left">
+                              <div className="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-2 md:space-y-0 justify-between">
+                                <h3 className="text-2xl font-black tracking-tight">{profile.name}</h3>
+                                
+                                <button 
+                                  onClick={() => {
+                                    setTempProfile({ ...profile });
+                                    setIsBioModalOpen(true);
+                                  }}
+                                  className="px-4 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-xs shadow-sm transition-all"
+                                >
+                                  Edit Bio & Info
+                                </button>
+                              </div>
+
+                              {/* Geological stats badges */}
+                              <div className="flex justify-center md:justify-start items-center space-x-6 text-xs text-slate-500 dark:text-slate-400">
+                                <div><b className="text-slate-800 dark:text-slate-100">{profile.gallery.length}</b> uploads</div>
+                                <div><b className="text-slate-800 dark:text-slate-100">12</b> site visits</div>
+                                <div><b className="text-slate-800 dark:text-slate-100">24</b> samples logged</div>
+                              </div>
+
+                              {/* Structured Caption Info */}
+                              <div className="space-y-2 text-xs">
+                                <p className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed italic bg-black/5 dark:bg-white/5 p-3 rounded-2xl border border-black/5">
+                                  "{profile.bio || 'Passionate geological explorer without caption bio logged.'}"
+                                </p>
+                                
+                                {/* Contact Card */}
+                                <div className="pt-2 grid grid-cols-1 md:grid-cols-2 gap-2 text-slate-500 font-semibold uppercase text-[10px] tracking-wider">
+                                  <div className="flex items-center space-x-1.5">
+                                    <span className="text-amber-500">📞 Phone:</span>
+                                    <span className="text-slate-800 dark:text-slate-300 font-bold normal-case">{profile.phone || 'N/A'}</span>
+                                  </div>
+                                  <div className="flex items-center space-x-1.5">
+                                    <span className="text-amber-500">✉️ Node Email:</span>
+                                    <span className="text-slate-800 dark:text-slate-300 font-bold normal-case">{userEmail}</span>
+                                  </div>
+                                </div>
+
+                                {profile.link && (
+                                  <div className="pt-1.5">
+                                    <a 
+                                      href={profile.link} 
+                                      target="_blank" 
+                                      rel="noreferrer" 
+                                      className="text-emerald-500 dark:text-emerald-400 font-bold hover:underline inline-flex items-center"
+                                    >
+                                      🔗 {profile.link.replace(/(^\w+:|^)\/\//, '')}
+                                    </a>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Local Storage Photo Profile Gallery */}
+                        <div className="glass-ios p-6 rounded-3xl border border-black/5">
+                          <div className="flex justify-between items-center mb-4">
+                            <h4 className="text-sm font-bold">Local Stream Postings</h4>
+                            <label className="cursor-pointer bg-amber-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all active:scale-95 shadow-md">
+                              Post Photo From Storage
+                              <input type="file" accept="image/*" onChange={handleProfileGalleryUpload} className="hidden" />
+                            </label>
+                          </div>
+                          
+                          {profile.gallery.length === 0 ? (
+                            <div className="text-center py-8 border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl text-xs text-slate-400 font-medium">
+                              No uploaded photos logged in stream postings.
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-3 gap-4">
+                              {profile.gallery.map((img, i) => (
+                                <img key={i} src={img} alt="User asset" className="h-28 w-full object-cover rounded-2xl border border-white/10 shadow" />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ================= SETTINGS TAB ================= */}
+                {currentTab === 'settings' && (
+                  <div className="max-w-2xl mx-auto space-y-6">
+                    {!isAdmin ? (
+                      <div className="animate-on-scroll glass-ios p-6 rounded-3xl max-w-sm mx-auto shadow-xl">
+                        <h3 className="text-sm font-bold text-center mb-3">Admin Gateway Control</h3>
+                        <form onSubmit={handleAdminVerify} className="space-y-3">
+                          <input
+                            type="password"
+                            placeholder="Enter Administrative Access Key"
+                            value={adminKeyInput}
+                            onChange={(e) => setAdminKeyInput(e.target.value)}
+                            className="w-full p-2.5 bg-white/60 dark:bg-slate-950/60 border text-center tracking-widest text-xs rounded-xl focus:ring-1 focus:ring-amber-500"
+                          />
+                          {adminKeyError && <p className="text-xs text-red-500 text-center">{adminKeyError}</p>}
+                          <button type="submit" className="w-full py-2 bg-amber-500 text-white text-xs font-bold rounded-xl transition-all active:scale-95">
+                            Unlock Server Controls
+                          </button>
+                        </form>
+                      </div>
+                    ) : (
+                      <div className="space-y-6 animate-fadeIn text-xs">
+                        
+                        {/* Admin Logged Status Header */}
+                        <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex justify-between items-center">
+                          <div>
+                            <h4 className="font-bold text-emerald-400">KAMWANJE Master Console Active</h4>
+                            <span className="text-[10px] opacity-60">Full write permission settings logged. Key: ignatius2026</span>
+                          </div>
+                          <button onClick={() => { setIsAdmin(false); setAdminKeyInput(''); }} className="px-2.5 py-1 bg-red-500/20 text-red-500 font-bold rounded-lg text-[10px]">Lock Console</button>
+                        </div>
+
+                        {/* App Identity Configuration */}
+                        <div className="glass-ios p-5 rounded-3xl space-y-4">
+                          <h4 className="font-bold text-amber-500 uppercase tracking-wide">Core App Configuration Deck</h4>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col space-y-1.5">
+                              <label className="text-[10px] text-slate-400 uppercase font-black">Adjust Exchange rate (MWK for 1 USD)</label>
+                              <input 
+                                type="number" 
+                                value={usdToMwkRate} 
+                                onChange={(e) => {
+                                  const newRate = parseFloat(e.target.value);
+                                  setUsdToMwkRate(newRate);
+                                  pushSystemLog("Config", `USD conversion baseline changed dynamically: 1 USD = ${newRate} MWK.`);
+                                }} 
+                                className="p-2.5 bg-white/50 dark:bg-slate-950/50 border dark:border-slate-850 rounded-xl outline-none"
+                              />
+                            </div>
+
+                            <div className="flex flex-col space-y-1.5">
+                              <label className="text-[10px] text-slate-400 uppercase font-black">Configure Custom Platform Title</label>
+                              <input 
+                                type="text" 
+                                value={siteTitle} 
+                                onChange={(e) => {
+                                  setSiteTitle(e.target.value);
+                                  pushSystemLog("Config", `Adjusted platform identity name: ${e.target.value}`);
+                                }} 
+                                className="p-2.5 bg-white/50 dark:bg-slate-950/50 border dark:border-slate-850 rounded-xl outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col space-y-2">
+                            <label className="text-[10px] text-slate-400 uppercase font-black">Platform Logo Upload (Select from Local Storage)</label>
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              onChange={handleLogoUpload} 
+                              className="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:bg-amber-500/10 file:text-amber-500 focus:outline-none" 
+                            />
+                          </div>
+                        </div>
+
+                        {/* Safe Platform State switches & Interactive Tab Management */}
+                        <div className="glass-ios p-5 rounded-3xl space-y-4">
+                          <h4 className="font-bold text-amber-500 uppercase tracking-wide">Operational Feature & Tab Switches</h4>
+                          
+                          <div className="space-y-3">
+                            <span className="text-[10px] font-black text-slate-400 uppercase block border-b border-white/10 pb-1">Site Feature Flags</span>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                              <label className="flex items-center justify-between p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5">
+                                <span>Allow Commentary</span>
+                                <input 
+                                  type="checkbox" 
+                                  checked={allowComments} 
+                                  onChange={(e) => {
+                                    setAllowComments(e.target.checked);
+                                    pushSystemLog("Security", `User commentary capability changed to: ${e.target.checked}`);
+                                  }} 
+                                  className="accent-amber-500 h-4 w-4"
+                                />
+                              </label>
+
+                              <label className="flex items-center justify-between p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5">
+                                <span>Allow Registration</span>
+                                <input 
+                                  type="checkbox" 
+                                  checked={allowRegistration} 
+                                  onChange={(e) => {
+                                    setAllowRegistration(e.target.checked);
+                                    pushSystemLog("Security", `User authentication/registration permission: ${e.target.checked}`);
+                                  }} 
+                                  className="accent-amber-500 h-4 w-4"
+                                />
+                              </label>
+
+                              <label className="flex items-center justify-between p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5">
+                                <span>Maintenance Shield</span>
+                                <input 
+                                  type="checkbox" 
+                                  checked={maintenanceMode} 
+                                  onChange={(e) => {
+                                    setMaintenanceMode(e.target.checked);
+                                    pushSystemLog("System", `System maintenance overlay mode toggled to: ${e.target.checked}`);
+                                  }} 
+                                  className="accent-amber-500 h-4 w-4"
+                                />
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            <span className="text-[10px] font-black text-slate-400 uppercase block border-b border-white/10 pb-1">Tab Visibility Control for Guests</span>
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                              {Object.keys(allowedTabs).map((tabKey) => (
+                                <label key={tabKey} className="flex flex-col items-center justify-between p-2.5 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 text-center">
+                                  <span className="text-[10px] font-bold capitalize mb-2">{tabKey}</span>
+                                  <input 
+                                    type="checkbox" 
+                                    checked={allowedTabs[tabKey]} 
+                                    onChange={(e) => {
+                                      const updated = { ...allowedTabs, [tabKey]: e.target.checked };
+                                      setAllowedTabs(updated);
+                                      pushSystemLog("Config", `Tab [${tabKey}] visibility configured to: ${e.target.checked}`);
+                                    }} 
+                                    className="accent-amber-500 h-4 w-4"
+                                  />
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* CATALOG SPECIMEN INVENTORY MODIFIER SUITE */}
+                        <div className="glass-ios p-5 rounded-3xl space-y-4">
+                          <h4 className="font-bold text-emerald-500 uppercase tracking-wide">Current Inventory Management Logs</h4>
+                          
+                          <div className="space-y-2">
+                            {minerals.map(mineral => (
+                              <div key={mineral.id} className="p-3 bg-black/5 dark:bg-white/5 rounded-xl space-y-2 border border-black/5 dark:border-white/10">
+                                {editingMineralId === mineral.id ? (
+                                  <div className="grid grid-cols-2 gap-2 animate-fadeIn">
+                                    <input type="text" value={editingMineralForm.name} onChange={(e) => setEditingMineralForm({...editingMineralForm, name: e.target.value})} className="p-1.5 bg-white dark:bg-slate-950 border rounded text-[11px] outline-none" />
+                                    <input type="text" value={editingMineralForm.weight} onChange={(e) => setEditingMineralForm({...editingMineralForm, weight: e.target.value})} className="p-1.5 bg-white dark:bg-slate-950 border rounded text-[11px] outline-none" />
+                                    <input type="text" value={editingMineralForm.location} onChange={(e) => setEditingMineralForm({...editingMineralForm, location: e.target.value})} className="p-1.5 bg-white dark:bg-slate-950 border rounded text-[11px] outline-none" />
+                                    <input type="number" value={editingMineralForm.priceUSD} onChange={(e) => setEditingMineralForm({...editingMineralForm, priceUSD: e.target.value})} className="p-1.5 bg-white dark:bg-slate-950 border rounded text-[11px] outline-none" />
+                                    
+                                    <div className="col-span-2 flex flex-col space-y-1">
+                                      <label className="text-[10px] font-black text-slate-400">Modify Specimen Image (Local Storage)</label>
+                                      <input type="file" accept="image/*" onChange={handleEditMineralMediaUpload} className="w-full text-xs text-slate-500" />
+                                    </div>
+
+                                    <div className="col-span-2 flex space-x-2 pt-1">
+                                      <button onClick={() => saveEditedMineral(mineral.id)} className="px-3 py-1 bg-emerald-600 text-white font-bold rounded">Save Changes</button>
+                                      <button onClick={() => setEditingMineralId(null)} className="px-3 py-1 bg-slate-500 text-white font-bold rounded">Cancel</button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex justify-between items-center">
+                                    <div className="flex items-center space-x-2">
+                                      <img src={mineral.media} alt="" className="w-8 h-8 rounded-md object-cover" />
+                                      <div>
+                                        <span className="font-bold text-slate-800 dark:text-slate-100">{mineral.name}</span>
+                                        <p className="text-[10px] opacity-60">{mineral.weight} — Found: {mineral.location}</p>
+                                      </div>
+                                    </div>
+                                    <div className="flex space-x-2">
+                                      <button onClick={() => startEditingMineral(mineral)} className="px-2 py-1 bg-amber-500/20 text-amber-500 font-bold rounded text-[10px]">Adjust</button>
+                                      <button onClick={() => handleDeleteMineral(mineral.id)} className="px-2 py-1 bg-red-500/20 text-red-500 font-bold rounded text-[10px]">Drop</button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Add Mineral Entry Form */}
+                          <form onSubmit={handleAddMineral} className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2.5">
+                            <span className="text-[11px] font-bold uppercase text-slate-400 block">Inject New Specimen Record</span>
+                            <div className="grid grid-cols-2 gap-2">
+                              <input type="text" required placeholder="Mineral Reference Name" value={newMineral.name} onChange={(e) => setNewMineral({...newMineral, name: e.target.value})} className="p-2 bg-white/50 border dark:border-slate-800 rounded-xl outline-none" />
+                              <input type="text" placeholder="Weight Metrics" value={newMineral.weight} onChange={(e) => setNewMineral({...newMineral, weight: e.target.value})} className="p-2 bg-white/50 border dark:border-slate-800 rounded-xl outline-none" />
+                              <input type="text" placeholder="Origin Site Coordinates" value={newMineral.location} onChange={(e) => setNewMineral({...newMineral, location: e.target.value})} className="p-2 bg-white/50 border dark:border-slate-800 rounded-xl outline-none" />
+                              <input type="number" required placeholder="Base Price (USD)" value={newMineral.priceUSD} onChange={(e) => setNewMineral({...newMineral, priceUSD: e.target.value})} className="p-2 bg-white/50 border dark:border-slate-800 rounded-xl outline-none" />
+                            </div>
+                            
+                            <div className="flex flex-col space-y-1">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase">Mineral Image Attachment (Local Storage)</label>
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                onChange={handleMineralMediaUpload} 
+                                className="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-emerald-500/10 file:text-emerald-500" 
+                              />
+                            </div>
+
+                            <button type="submit" className="w-full py-2 bg-emerald-600 text-white font-bold rounded-xl transition-all">Commit Catalog Record</button>
+                          </form>
+                        </div>
+
+                        {/* INTERACTIVE REAL-TIME AUDIT LOGS WINDOW */}
+                        <div className="glass-ios p-5 rounded-3xl space-y-3 shadow-lg">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-bold text-emerald-400 uppercase tracking-wide">Real-Time System Audit Terminal</h4>
+                            <button 
+                              onClick={() => {
+                                setSystemLogs([{ id: 1, timestamp: new Date().toLocaleTimeString(), category: "Admin", message: "Security log register cleared." }]);
+                                triggerAlert("Cleared", "Audit register traces wiped from session memory.", "success");
+                              }}
+                              className="px-2 py-1 bg-red-500/10 text-red-400 font-bold rounded-lg border border-red-500/20 text-[9px] uppercase tracking-wider"
+                            >
+                              Clear Register
+                            </button>
+                          </div>
+
+                          <div className="p-3 bg-slate-950 text-emerald-500 font-mono text-[10px] rounded-xl h-48 overflow-y-auto space-y-1.5 scrollbar-thin border border-slate-800">
+                            {systemLogs.map(log => (
+                              <div key={log.id} className="leading-relaxed border-b border-slate-900/50 pb-1.5 flex items-start space-x-1">
+                                <span className="text-slate-500">[{log.timestamp}]</span>
+                                <span className="text-blue-400 font-bold">[{log.category}]</span>
+                                <span className="text-slate-300">{log.message}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                      </div>
+                    )}
+                  </div>
+                )}
+
+              </React.Fragment>
+            )}
+
+          </main>
+
+          {/* BRANDING FOOTER AT THE BOTTOM */}
+          <footer className="fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl bg-white/40 dark:bg-slate-950/40 border-t border-white/10 dark:border-slate-900/60 py-3.5 text-center shadow-lg">
+            <p className="text-[11px] font-black tracking-widest text-slate-500 uppercase">
+              OWNED BY <span className="bg-gradient-to-r from-amber-500 to-emerald-500 bg-clip-text text-transparent font-black">KAMWANJE</span> &copy; 2026
+            </p>
+          </footer>
+
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
