@@ -10,6 +10,11 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   
+  <!-- Firebase Compat CDNs (Safe for Babel standalone integration) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
   <!-- Tailwind CSS Engine with custom configuration -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -26,7 +31,6 @@
   </script>
 
   <style>
-    /* Premium iOS 26 Glassmorphism transitions */
     .animate-on-scroll {
       opacity: 0;
       transform: translateY(24px);
@@ -194,9 +198,16 @@
         { id: 1, sender: 'admin', text: 'Welcome to THE MINING BLOG265 official hub. How can we assist you with exploration, hydraulics, or mineral trade parameters today?', timestamp: '09:30 AM', media: null }
       ]);
       
-      // User Profile State (Meta-styled details)
+      // Authenticated User States
       const [isLoggedIn, setIsLoggedIn] = useState(false);
       const [userEmail, setUserEmail] = useState('');
+      const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
+      const [authEmail, setAuthEmail] = useState('');
+      const [authPassword, setAuthPassword] = useState('');
+      const [authDisplayName, setAuthDisplayName] = useState('');
+      const [authError, setAuthError] = useState('');
+      const [isAuthLoading, setIsAuthLoading] = useState(false);
+
       const [profile, setProfile] = useState({
         name: 'Guest Explorer',
         email: '',
@@ -246,6 +257,9 @@
       // --- CUSTOM DIALOG ENGINE FOR ALERTS/CONFIRMS ---
       const [alertConfig, setAlertConfig] = useState({ show: false, title: '', message: '', type: 'info', onConfirm: null });
 
+      // Live firebase ref
+      const firebaseAuthRef = useRef(null);
+
       const triggerAlert = (title, message, type = 'info', onConfirm = null) => {
         setAlertConfig({ show: true, title, message, type, onConfirm });
       };
@@ -254,7 +268,6 @@
         setAlertConfig({ show: false, title: '', message: '', type: 'info', onConfirm: null });
       };
 
-      // --- AUDIT SYSTEM LOGGING GENERATOR ---
       const pushSystemLog = (category, message) => {
         const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         setSystemLogs(prev => [
@@ -262,6 +275,52 @@
           ...prev
         ]);
       };
+
+      useEffect(() => {
+        // Initialize dynamic Firebase Auth if variables are injected/configured, otherwise fallback
+        let firebaseConfig = null;
+        try {
+          if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+            firebaseConfig = JSON.parse(__firebase_config);
+          }
+        } catch (e) {
+          console.warn("Could not parse dynamic Firebase config, operating in fallback/simulated mode.");
+        }
+
+        if (firebaseConfig && !firebase.apps.length) {
+          try {
+            firebase.initializeApp(firebaseConfig);
+            firebaseAuthRef.current = firebase.auth();
+            pushSystemLog("Auth", "Live Firebase Authentication initialized successfully.");
+            
+            // Authentication state change observer
+            firebaseAuthRef.current.onAuthStateChanged((user) => {
+              if (user) {
+                setIsLoggedIn(true);
+                setUserEmail(user.email || '');
+                const cleanName = user.displayName || user.email.split('@')[0];
+                const updatedProfile = {
+                  ...profile,
+                  email: user.email || '',
+                  name: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
+                  avatar: user.photoURL || profile.avatar
+                };
+                setProfile(updatedProfile);
+                setTempProfile(updatedProfile);
+                pushSystemLog("Auth", `User session detected: ${user.email} (UID: ${user.uid})`);
+              } else {
+                setIsLoggedIn(false);
+                setUserEmail('');
+              }
+            });
+          } catch (err) {
+            console.error("Firebase startup exception:", err);
+            pushSystemLog("Error", "Failed to mount live Firebase Auth. Reverting to simulator.");
+          }
+        } else {
+          pushSystemLog("Auth", "Running in high-fidelity simulated local authentication environment.");
+        }
+      }, []);
 
       useEffect(() => {
         if (darkMode) {
@@ -294,7 +353,6 @@
         return `MWK ${(usdValue * usdToMwkRate).toLocaleString()}`;
       };
 
-      // --- ADMIN AUTHENTICATION ---
       const handleAdminVerify = (e) => {
         e.preventDefault();
         if (adminKeyInput === 'ignatius2026') {
@@ -308,13 +366,133 @@
         }
       };
 
-      // --- ACTIONS: LOGO CONTENT ENGINE ---
       const handleLogoUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
           const localUrl = URL.createObjectURL(file);
           setSiteLogo(localUrl);
           pushSystemLog("Config", "Dynamic corporate logo replaced with local file reference.");
+        }
+      };
+
+      // Email Login / Signup execution
+      const handleAuthSubmit = async (e) => {
+        e.preventDefault();
+        setAuthError('');
+        
+        if (!allowRegistration && authMode === 'signup') {
+          triggerAlert("Sign-Ups Locked", "Admin has temporarily locked user registration actions.", "warning");
+          return;
+        }
+
+        if (!authEmail || !authPassword) {
+          setAuthError('Please complete all credential fields.');
+          return;
+        }
+
+        setIsAuthLoading(true);
+        pushSystemLog("Auth", `Attempting ${authMode} for ${authEmail}...`);
+
+        try {
+          if (firebaseAuthRef.current) {
+            // Live Firebase Auth Flow
+            if (authMode === 'login') {
+              await firebaseAuthRef.current.signInWithEmailAndPassword(authEmail, authPassword);
+              triggerAlert("Welcome Back", "Session loaded securely via Firebase.", "success");
+            } else {
+              const userCredential = await firebaseAuthRef.current.createUserWithEmailAndPassword(authEmail, authPassword);
+              if (authDisplayName) {
+                await userCredential.user.updateProfile({ displayName: authDisplayName });
+              }
+              triggerAlert("Welcome!", "Account provisioned and authenticated via Firebase.", "success");
+            }
+          } else {
+            // Simulated local memory fallback authentication (Safe Sandbox Mode)
+            setTimeout(() => {
+              setIsLoggedIn(true);
+              setUserEmail(authEmail);
+              const calculatedName = authDisplayName || authEmail.split('@')[0];
+              const resolvedProfile = {
+                ...profile,
+                email: authEmail,
+                name: calculatedName.charAt(0).toUpperCase() + calculatedName.slice(1)
+              };
+              setProfile(resolvedProfile);
+              setTempProfile(resolvedProfile);
+              setIsAuthLoading(false);
+              pushSystemLog("Auth", `Simulated session authenticated for email: ${authEmail}`);
+              triggerAlert("Session Created", `Successfully logged in as ${calculatedName}.`, "success");
+            }, 1000);
+            return; // Exit here to prevent duplicate loading resets
+          }
+        } catch (err) {
+          console.error(err);
+          setAuthError(err.message || 'Authentication error encountered.');
+          pushSystemLog("Security", `Auth failure: ${err.message}`);
+        }
+        setIsAuthLoading(false);
+      };
+
+      // Google Sign-In implementation (Firebase & Sim fallback)
+      const handleGoogleSignIn = async () => {
+        setAuthError('');
+        setIsAuthLoading(true);
+        pushSystemLog("Auth", "Requesting Google OAuth login sequence...");
+
+        try {
+          if (firebaseAuthRef.current) {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            await firebaseAuthRef.current.signInWithPopup(provider);
+            triggerAlert("Google Auth Connected", "Successfully loaded Google profile.", "success");
+          } else {
+            // Simulated fallback Google Authorization sequence
+            setTimeout(() => {
+              setIsLoggedIn(true);
+              const googleEmail = "geologist.explorer@google.com";
+              setUserEmail(googleEmail);
+              const resolvedProfile = {
+                ...profile,
+                email: googleEmail,
+                name: "Google Explorer",
+                avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150"
+              };
+              setProfile(resolvedProfile);
+              setTempProfile(resolvedProfile);
+              setIsAuthLoading(false);
+              pushSystemLog("Auth", `Simulated Google Session authorized for: ${googleEmail}`);
+              triggerAlert("Google Session Configured", "Simulated OAuth connection succeeded.", "success");
+            }, 1000);
+            return;
+          }
+        } catch (err) {
+          console.error(err);
+          setAuthError(err.message || 'Google Auth sequence aborted.');
+          pushSystemLog("Security", `Google Auth error: ${err.message}`);
+        }
+        setIsAuthLoading(false);
+      };
+
+      // Global Log Out Trigger
+      const handleLogOut = async () => {
+        try {
+          if (firebaseAuthRef.current) {
+            await firebaseAuthRef.current.signOut();
+          }
+          setIsLoggedIn(false);
+          setUserEmail('');
+          setProfile({
+            name: 'Guest Explorer',
+            email: '',
+            phone: '+265 888 12 34 56',
+            bio: 'Passionate about geology and raw mineral commerce across Malawi.',
+            link: 'https://github.com',
+            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+            gallery: []
+          });
+          pushSystemLog("Auth", "Session terminated. Reverting state back to guest explorer.");
+          triggerAlert("Signed Out", "Explorer credentials have been cleared safely.", "info");
+        } catch (err) {
+          pushSystemLog("Error", "Error encountered terminating auth session.");
         }
       };
 
@@ -622,26 +800,6 @@
         }
       };
 
-      const handleLogin = (e) => {
-        e.preventDefault();
-        if (!allowRegistration) {
-          triggerAlert("Sign-Ins Locked", "Admin has locked user registration actions temporarily.", "warning");
-          return;
-        }
-        if (userEmail.trim()) {
-          setIsLoggedIn(true);
-          const namePart = userEmail.split('@')[0];
-          const newProfile = { 
-            ...profile, 
-            email: userEmail, 
-            name: namePart.charAt(0).toUpperCase() + namePart.slice(1) 
-          };
-          setProfile(newProfile);
-          setTempProfile(newProfile);
-          pushSystemLog("UserActivity", `Guest explorer identity session mapped to email node: ${userEmail}`);
-        }
-      };
-
       const handleProfileGalleryUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -687,7 +845,7 @@
             </div>
           )}
 
-          {/* DYNAMIC POST CREATION MODAL (Meta-style Floating Action Triggered) */}
+          {/* DYNAMIC POST CREATION MODAL */}
           {isCreateModalOpen && (
             <div className="fixed inset-0 z-[105] bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
               <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-5">
@@ -752,7 +910,7 @@
             </div>
           )}
 
-          {/* META-STYLE EDIT PROFILE BIO MODAL */}
+          {/* EDIT PROFILE BIO MODAL */}
           {isBioModalOpen && (
             <div className="fixed inset-0 z-[105] bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
               <div className="w-full max-w-md rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-5">
@@ -874,7 +1032,7 @@
             </div>
           )}
 
-          {/* META-STYLE DYNAMIC FLOATING ACTION "+" BUTTON */}
+          {/* DYNAMIC FLOATING ACTION "+" BUTTON */}
           <button 
             onClick={() => setIsCreateModalOpen(true)} 
             className="fixed bottom-24 right-6 z-50 w-14 h-14 bg-gradient-to-tr from-amber-500 to-emerald-600 hover:from-amber-600 hover:to-emerald-700 text-white rounded-full shadow-2xl flex items-center justify-center transform active:scale-95 transition-all focus:outline-none"
@@ -926,7 +1084,7 @@
               </div>
             </div>
 
-            {/* TABS NAVIGATION BAR (Clean typography, no emojis) */}
+            {/* TABS NAVIGATION BAR */}
             <nav className="max-w-3xl mx-auto px-4 pb-2">
               <div className="flex p-1.5 space-x-1 bg-black/5 dark:bg-white/5 backdrop-blur-md rounded-xl border border-black/5 dark:border-white/5 overflow-x-auto whitespace-nowrap">
                 {[
@@ -1537,25 +1695,111 @@
                   </div>
                 )}
 
-                {/* ================= PROFILE TAB (Meta-style Bio Sheet Redesign) ================= */}
+                {/* ================= PROFILE TAB WITH EMAIL & GOOGLE AUTHENTICATION ================= */}
                 {currentTab === 'profile' && (
                   <div className="max-w-2xl mx-auto space-y-6">
                     {!isLoggedIn ? (
-                      <div className="animate-on-scroll glass-ios p-6 rounded-3xl max-w-md mx-auto shadow-xl">
-                        <h3 className="text-base font-bold text-center mb-4">Initialize Explorer Session</h3>
-                        <form onSubmit={handleLogin} className="space-y-4">
-                          <input
-                            type="email"
-                            required
-                            placeholder="Enter email address"
-                            value={userEmail}
-                            onChange={(e) => setUserEmail(e.target.value)}
-                            className="w-full p-2.5 bg-white/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none"
-                          />
-                          <button type="submit" className="w-full py-2 bg-amber-500 text-white font-bold rounded-xl text-xs transition-transform active:scale-[0.98]">
-                            Login Securely
+                      <div className="animate-on-scroll glass-ios p-8 rounded-3xl max-w-md mx-auto shadow-2xl border border-white/30 space-y-6">
+                        
+                        {/* Selector Segment Tabs */}
+                        <div className="flex p-1 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5">
+                          <button 
+                            type="button" 
+                            onClick={() => { setAuthMode('login'); setAuthError(''); }}
+                            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authMode === 'login' ? 'bg-white dark:bg-slate-800 text-amber-500 shadow-md' : 'text-slate-500'}`}
+                          >
+                            Sign In
+                          </button>
+                          <button 
+                            type="button" 
+                            onClick={() => { setAuthMode('signup'); setAuthError(''); }}
+                            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authMode === 'signup' ? 'bg-white dark:bg-slate-800 text-amber-500 shadow-md' : 'text-slate-500'}`}
+                          >
+                            Sign Up
+                          </button>
+                        </div>
+
+                        <div className="text-center space-y-1">
+                          <h3 className="text-xl font-black tracking-tight bg-gradient-to-r from-amber-500 via-emerald-500 to-emerald-600 bg-clip-text text-transparent uppercase">
+                            {authMode === 'login' ? "Welcome Back" : "Register Node Identity"}
+                          </h3>
+                          <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Secure Geological Credentials</p>
+                        </div>
+
+                        {authError && (
+                          <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-center text-xs font-semibold animate-fadeIn">
+                            ⚠️ {authError}
+                          </div>
+                        )}
+
+                        <form onSubmit={handleAuthSubmit} className="space-y-4 text-xs">
+                          {authMode === 'signup' && (
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Display Name</label>
+                              <input
+                                type="text"
+                                placeholder="Your full name"
+                                value={authDisplayName}
+                                onChange={(e) => setAuthDisplayName(e.target.value)}
+                                className="w-full p-3 bg-white/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-amber-500"
+                              />
+                            </div>
+                          )}
+
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Email Address</label>
+                            <input
+                              type="email"
+                              required
+                              placeholder="explorer@kamwanje.com"
+                              value={authEmail}
+                              onChange={(e) => setAuthEmail(e.target.value)}
+                              className="w-full p-3 bg-white/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-amber-500"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Account Password</label>
+                            <input
+                              type="password"
+                              required
+                              placeholder="••••••••"
+                              value={authPassword}
+                              onChange={(e) => setAuthPassword(e.target.value)}
+                              className="w-full p-3 bg-white/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-amber-500"
+                            />
+                          </div>
+
+                          <button 
+                            type="submit" 
+                            disabled={isAuthLoading}
+                            className="w-full py-3 bg-gradient-to-r from-amber-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
+                          >
+                            {isAuthLoading ? "Authenticating Session..." : (authMode === 'login' ? "Log In Successfully" : "Register Node Credentials")}
                           </button>
                         </form>
+
+                        {/* Social Google Authorization Divider */}
+                        <div className="relative flex items-center justify-center py-2 text-[10px] text-slate-400 uppercase font-black tracking-widest">
+                          <span className="absolute inset-x-0 h-px bg-slate-200 dark:bg-slate-800" />
+                          <span className="relative bg-white dark:bg-slate-900 px-3">or authorize with</span>
+                        </div>
+
+                        {/* Google Login Button */}
+                        <button 
+                          onClick={handleGoogleSignIn}
+                          disabled={isAuthLoading}
+                          className="w-full py-2.5 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-850 rounded-xl flex items-center justify-center space-x-2 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all active:scale-[0.98] shadow-sm"
+                        >
+                          {/* Premium Google SVG Icon */}
+                          <svg className="w-4 h-4" viewBox="0 0 24 24">
+                            <path fill="#EA4335" d="M12 5.04c1.65 0 3.13.57 4.3 1.69l3.21-3.21C17.56 1.7 14.98 1 12 1 7.35 1 3.37 3.69 1.48 7.6l3.89 3.02C6.35 7.42 8.94 5.04 12 5.04z" />
+                            <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.34H12v4.43h6.46c-.28 1.47-1.11 2.71-2.36 3.55l3.66 2.84c2.14-1.97 3.39-4.88 3.39-8.48z" />
+                            <path fill="#FBBC05" d="M5.37 14.38c-.24-.72-.37-1.49-.37-2.28 0-.79.13-1.56.37-2.28L1.48 7.6C.54 9.48 0 11.62 0 13.9s.54 4.42 1.48 6.3l3.89-3.02c-.24-.72-.37-1.49-.37-2.8z" />
+                            <path fill="#34A853" d="M12 23c3.24 0 5.96-1.08 7.95-2.92l-3.66-2.84c-1.01.68-2.31 1.08-3.79 1.08-3.06 0-5.65-2.38-6.57-5.58L1.04 15.76C2.93 20.31 7.08 23 12 23z" />
+                          </svg>
+                          <span>Sign In with Google</span>
+                        </button>
                       </div>
                     ) : (
                       <div className="space-y-6">
@@ -1573,15 +1817,23 @@
                               <div className="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-2 md:space-y-0 justify-between">
                                 <h3 className="text-2xl font-black tracking-tight">{profile.name}</h3>
                                 
-                                <button 
-                                  onClick={() => {
-                                    setTempProfile({ ...profile });
-                                    setIsBioModalOpen(true);
-                                  }}
-                                  className="px-4 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-xs shadow-sm transition-all"
-                                >
-                                  Edit Bio & Info
-                                </button>
+                                <div className="flex space-x-2">
+                                  <button 
+                                    onClick={() => {
+                                      setTempProfile({ ...profile });
+                                      setIsBioModalOpen(true);
+                                    }}
+                                    className="px-4 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-xs shadow-sm transition-all"
+                                  >
+                                    Edit Bio
+                                  </button>
+                                  <button 
+                                    onClick={handleLogOut}
+                                    className="px-4 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-xl font-bold text-xs shadow-sm transition-all"
+                                  >
+                                    Sign Out
+                                  </button>
+                                </div>
                               </div>
 
                               {/* Geological stats badges */}
